@@ -1,0 +1,1890 @@
+ import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { supabase } from './lib/supabase';
+import {
+  LayoutDashboard,
+  Laptop,
+  MousePointer2,
+  Printer,
+  Scan,
+  Search,
+  Plus,
+  Bell,
+  Settings,
+  RefreshCw,
+  FileDown,
+  FileUp,
+  Filter,
+  Trash2,
+  Database,
+  AlertCircle,
+  Sun,
+  Moon,
+  Monitor,
+  Eye,
+  Palette,
+  X,
+  Maximize2,
+  Minimize2,
+  Command,
+  Activity,
+  Clock,
+  Edit3,
+  Tablet,
+  TrendingUp,
+  TrendingDown,
+  Wrench,
+  History,
+  MoreVertical,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+  Menu,
+  CheckCircle,
+  AlertTriangle,
+  Info,
+  Droplets,
+  Leaf,
+  Sparkles,
+  Flame,
+  Heart,
+  Waves,
+  Star,
+  Gem,
+  LogOut
+} from 'lucide-react';
+import LoadingScreen from './components/LoadingScreen';
+import { 
+  RadarChart, 
+  PolarGrid, 
+  PolarAngleAxis, 
+  PolarRadiusAxis, 
+  Radar, 
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Cell,
+  LineChart,
+  Line,
+  PieChart,
+  Pie,
+  Legend
+} from 'recharts';
+import { Button, Card, Input, Modal } from './components/ui/Base';
+import EquipmentModal from './components/EquipmentModal';
+import EquipmentHistoryModal from './components/EquipmentHistoryModal';
+import { useEquipment, useEquipmentStats, useHubs } from './hooks/useData';
+import { useTheme, themes } from './context/ThemeContext';
+import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
+import { checkDuplicates } from './utils/duplicateCheck';
+import AnalyticsDashboard from './components/AnalyticsDashboard';
+import Toast from './components/ui/Toast';
+
+const Sidebar = ({ activePage, setActivePage, inventoryCount, hubsCount, effectiveTheme, isCollapsed, onToggle, onLogout }) => {
+  const [showTooltip, setShowTooltip] = useState(false);
+  const [hoveredItem, setHoveredItem] = useState(null);
+  const [imgErrorSidebar, setImgErrorSidebar] = useState(false);
+
+  const navItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={20} /> },
+    { id: 'inventory', label: 'Equipment', icon: <Laptop size={20} />, badge: inventoryCount },
+  ];
+
+  const adminItems = [
+    { id: 'settings', label: 'Settings', icon: <Settings size={20} /> },
+  ];
+
+  return (
+    <div 
+      className={`flex flex-col h-screen shrink-0 glass-sidebar transition-all duration-300 ${isCollapsed ? 'w-20' : 'w-64'}`}
+      style={{ background: 'var(--bg-glass)' }}
+    >
+      <div className="p-4 border-b border-[var(--border-glass)] flex items-center gap-3">
+        <div 
+          className="w-12 h-12 rounded-[14px] flex items-center justify-center pulse-glow flex-shrink-0"
+          style={{ 
+            background: '#ffffff',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)'
+          }}
+        >
+          {!imgErrorSidebar ? (
+            <img
+              src="/logo.png.png"
+              alt="Logo"
+              onError={() => setImgErrorSidebar(true)}
+              style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 14, backgroundColor: 'white', padding: 0 }}
+            />
+          ) : (
+            <Laptop size={24} strokeWidth={2.5} />
+          )}
+        </div>
+        {!isCollapsed && (
+          <div className="flex-1">
+            <h1 className="font-bold text-lg leading-tight" style={{ color: 'var(--text-primary)' }}>Asset Inventory</h1>
+            <p className="text-[10px] uppercase tracking-wider font-bold" style={{ color: 'var(--text-tertiary)' }}>System</p>
+          </div>
+        )}
+        <div className="relative flex-shrink-0 ml-auto">
+          <button
+            onClick={onToggle}
+            onMouseEnter={() => setShowTooltip(true)}
+            onMouseLeave={() => setShowTooltip(false)}
+            className="p-3 rounded-lg transition-all duration-300 hover:scale-110"
+            style={{
+              color: 'var(--text-secondary)',
+              background: 'linear-gradient(135deg, rgba(47, 124, 255, 0.14), rgba(190, 70, 255, 0.14))',
+              border: '1px solid rgba(47, 124, 255, 0.28)',
+              boxShadow: '0 0 0 1px rgba(47, 124, 255, 0.12), 0 4px 12px rgba(47, 124, 255, 0.18)'
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.background = 'linear-gradient(135deg, rgba(47, 124, 255, 0.2), rgba(190, 70, 255, 0.2))';
+              e.currentTarget.style.boxShadow = '0 0 0 1px rgba(47, 124, 255, 0.4), 0 6px 20px rgba(47, 124, 255, 0.25)';
+              e.currentTarget.style.borderColor = 'rgba(47, 124, 255, 0.45)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.background = 'linear-gradient(135deg, rgba(47, 124, 255, 0.14), rgba(190, 70, 255, 0.14))';
+              e.currentTarget.style.boxShadow = '0 0 0 1px rgba(47, 124, 255, 0.12), 0 4px 12px rgba(47, 124, 255, 0.18)';
+              e.currentTarget.style.borderColor = 'rgba(47, 124, 255, 0.28)';
+            }}
+          >
+            {isCollapsed ? (
+              <ChevronRight size={20} strokeWidth={2} />
+            ) : (
+              <ChevronLeft size={20} strokeWidth={2} />
+            )}
+          </button>
+          {showTooltip && (
+            <div className="sidebar-tooltip">
+              {isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto py-6 px-3 space-y-6 modern-scroll" style={{ overflow: 'visible' }}>
+        <div>
+          {!isCollapsed && (
+            <p className="text-[10px] uppercase tracking-widest font-bold mb-3 px-3" style={{ color: 'var(--text-tertiary)' }}>Main Menu</p>
+          )}
+          <nav className="space-y-1">
+            {navItems.map((item) => (
+              <div key={item.id} className="relative" style={{ overflow: 'visible' }}>
+                <button
+                  onClick={() => setActivePage(item.id)}
+                  onMouseEnter={() => setHoveredItem(item.id)}
+                  onMouseLeave={() => setHoveredItem(null)}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-[12px] transition-all duration-200 group ${
+                    activePage === item.id 
+                      ? '' 
+                      : 'hover:bg-white/5'
+                  } ${isCollapsed ? 'justify-center' : ''}`}
+                  style={activePage === item.id ? {
+                    background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))',
+                    boxShadow: '0 4px 20px rgba(10, 132, 255, 0.35)',
+                    color: 'white'
+                  } : {
+                    color: 'var(--text-primary)'
+                  }}
+                >
+                  <div className="flex items-center justify-center w-6 h-6" style={{ color: activePage === item.id ? 'white' : 'var(--accent-tertiary)' }}>
+                    {item.icon}
+                  </div>
+                  {!isCollapsed && (
+                    <>
+                      <span className="font-medium text-sm">{item.label}</span>
+                      {item.badge && (
+                        <span 
+                          className="ml-auto text-xs font-bold px-2.5 py-0.5 rounded-full"
+                          style={{ 
+                            background: activePage === item.id ? 'rgba(255,255,255,0.2)' : 'var(--bg-secondary)',
+                            color: activePage === item.id ? 'white' : 'var(--text-secondary)'
+                          }}
+                        >
+                          {item.badge}
+                        </span>
+                      )}
+                    </>
+                  )}
+                </button>
+                {isCollapsed && hoveredItem === item.id && (
+                  <div className="sidebar-tooltip">
+                    {item.label}
+                  </div>
+                )}
+              </div>
+            ))}
+          </nav>
+        </div>
+
+        <div>
+          {!isCollapsed && (
+            <p className="text-[10px] uppercase tracking-widest font-bold mb-3 px-3" style={{ color: 'var(--text-tertiary)' }}>Admin</p>
+          )}
+          <nav className="space-y-1">
+            {adminItems.map((item) => (
+              <div key={item.id} className="relative" style={{ overflow: 'visible' }}>
+                <button
+                  onClick={() => setActivePage(item.id)}
+                  onMouseEnter={() => setHoveredItem(item.id)}
+                  onMouseLeave={() => setHoveredItem(null)}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-[12px] transition-all duration-200 group ${
+                    activePage === item.id 
+                      ? '' 
+                      : 'hover:bg-white/5'
+                  } ${isCollapsed ? 'justify-center' : ''}`}
+                  style={activePage === item.id ? {
+                    background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))',
+                    boxShadow: '0 4px 20px rgba(10, 132, 255, 0.35)',
+                    color: 'white'
+                  } : {
+                    color: 'var(--text-primary)'
+                  }}
+                >
+                  <div className="flex items-center justify-center w-6 h-6" style={{ color: activePage === item.id ? 'white' : 'var(--accent-tertiary)' }}>
+                    {item.icon}
+                  </div>
+                  {!isCollapsed && (
+                    <span className="font-medium text-sm">{item.label}</span>
+                  )}
+                </button>
+                {isCollapsed && hoveredItem === item.id && (
+                  <div className="sidebar-tooltip">
+                    {item.label}
+                  </div>
+                )}
+              </div>
+            ))}
+          </nav>
+        </div>
+      </div>
+
+      <div className="p-4 mt-auto">
+        {!isCollapsed ? (
+          <div 
+            className="rounded-[16px] p-4"
+            style={{ 
+              background: 'var(--bg-glass-light)',
+              border: '1px solid var(--border-glass)'
+            }}
+          >
+            <div className="flex items-center gap-3 mb-3">
+              <Database size={16} strokeWidth={2} style={{ color: 'var(--accent-primary)' }} />
+              <span className="text-xs font-bold" style={{ color: 'var(--text-secondary)' }}>Database</span>
+              <div 
+                className="w-2 h-2 rounded-full animate-pulse"
+                style={{ background: 'var(--accent-green)', boxShadow: '0 0 8px var(--accent-green)' }}
+              ></div>
+            </div>
+            <p className="text-[10px] mb-3" style={{ color: 'var(--text-tertiary)' }}>Connected to Supabase</p>
+            <div className="space-y-2">
+              <Button 
+                variant="glass" 
+                size="sm" 
+                className="w-full gap-2 text-xs font-semibold"
+                onClick={() => window.location.reload()}
+              >
+                <RefreshCw size={14} strokeWidth={2} />
+                Sync
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full gap-2 text-xs font-semibold"
+                onClick={onLogout}
+              >
+                <LogOut size={14} />
+                Sign Out
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex justify-center">
+            <Database size={20} strokeWidth={2} style={{ color: 'var(--accent-primary)' }} />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+function App() {
+  const [activePage, setActivePage] = useState('dashboard');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedHub, setSelectedHub] = useState('all');
+  const [toast, setToast] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingEquipment, setEditingEquipment] = useState(null);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [authUser, setAuthUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [authError, setAuthError] = useState('');
+  
+  // History modal state
+  const [historyModalOpen, setHistoryModalOpen] = useState(false);
+  const [selectedHistoryEquipment, setSelectedHistoryEquipment] = useState(null);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  
+  // Filters state
+  const [filters, setFilters] = useState({
+    condition: '',
+    status: '',
+    hub: ''
+  });
+  const [isFullView, setIsFullView] = useState(false);
+
+  // Analytics filters state (separate from inventory filters)
+  const [analyticsFilters, setAnalyticsFilters] = useState({
+    status: '',
+    condition: '',
+    equipmentType: '',
+    hub: 'all',
+    dateRange: 'all' // all, 30days, 90days, 1year
+  });
+
+  // Loading state
+  const [isLoading, setIsLoading] = useState(true);
+  const [pageLoading, setPageLoading] = useState(false);
+
+  // Refs for synchronized scrolling
+  const headerScrollRef = useRef(null);
+  const bodyScrollRef = useRef(null);
+
+  // Excel-like cell selection
+  const [selectedCell, setSelectedCell] = useState(null);
+
+  // Add Excel-like styling
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      .excel-grid {
+        border-collapse: separate;
+        border-spacing: 0;
+      }
+      .excel-grid th,
+      .excel-grid td {
+        border-right: 1px solid var(--border-color);
+        border-bottom: 1px solid var(--border-color);
+        white-space: nowrap;
+        overflow: visible;
+        text-overflow: unset;
+        max-width: none;
+      }
+      .excel-grid th {
+        background: var(--bg-secondary);
+        font-weight: 600;
+        text-align: left;
+        padding: 8px 12px;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-secondary);
+        border-top: 1px solid var(--border-color);
+      }
+      .excel-grid td {
+        padding: 6px 12px;
+        font-size: 13px;
+        transition: background-color 0.1s;
+      }
+      .excel-grid tr:hover td {
+        background-color: var(--accent-primary)/5;
+      }
+      .excel-grid .cell-selected {
+        outline: 2px solid var(--accent-primary);
+        outline-offset: -2px;
+        background-color: var(--accent-primary)/10 !important;
+      }
+      .excel-grid .cell-selected:focus {
+        outline: 2px solid var(--accent-primary);
+      }
+      .excel-row:nth-child(even) {
+        background-color: var(--bg-primary);
+      }
+      .excel-row:nth-child(odd) {
+        background-color: var(--bg-secondary);
+      }
+    `;
+    document.head.appendChild(style);
+    return () => document.head.removeChild(style);
+  }, []);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const { data } = await supabase.auth.getSession();
+        setAuthUser(data.session?.user ?? null);
+      } catch (err) {
+        console.error('Auth session check failed:', err);
+      } finally {
+        setAuthLoading(false);
+      }
+    };
+
+    checkAuth();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setAuthUser(session?.user ?? null);
+    });
+
+    return () => authListener?.subscription?.unsubscribe();
+  }, []);
+
+  const handleLogin = async (event) => {
+    event.preventDefault();
+    setAuthError('');
+    setAuthLoading(true);
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: loginEmail,
+      password: loginPassword,
+    });
+
+    if (error) {
+      setAuthError(error.message);
+      setAuthLoading(false);
+      return;
+    }
+
+    setAuthUser(data.user ?? null);
+    setAuthLoading(false);
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setAuthUser(null);
+    setActivePage('dashboard');
+  };
+
+  const { hubs, loading: hubsLoading } = useHubs();
+  const { stats, loading: statsLoading } = useEquipmentStats(selectedHub);
+  const { 
+    equipment, 
+    loading: equipLoading, 
+    addEquipment, 
+    updateEquipment, 
+    deleteEquipment, 
+    refresh,
+    totalCount,
+    totalPages,
+    itemsPerPage
+  } = useEquipment(selectedHub, currentPage, filters, searchQuery);
+  const { theme, setTheme, themes, effectiveTheme } = useTheme();
+
+  // Reset to page 1 when filters, search, or hub changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, filters, selectedHub]);
+
+  // Manage loading state based on data fetching
+  useEffect(() => {
+    const anyLoading = hubsLoading || statsLoading || equipLoading;
+    
+    if (anyLoading) {
+      setIsLoading(true);
+    } else {
+      // Add a minimum loading time for better UX
+      const timer = setTimeout(() => {
+        setIsLoading(false);
+      }, 800);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [hubsLoading, statsLoading, equipLoading]);
+
+  // Manage page-specific loading state
+  useEffect(() => {
+    if (activePage === 'inventory' && equipLoading) {
+      setPageLoading(true);
+    } else if (activePage === 'dashboard' && statsLoading) {
+      setPageLoading(true);
+    } else {
+      const timer = setTimeout(() => {
+        setPageLoading(false);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [activePage, equipLoading, statsLoading]);
+
+  useEffect(() => {
+    document.body.style.overflow = isFullView ? 'hidden' : '';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isFullView]);
+
+  const handleAddEquipment = () => {
+    setEditingEquipment(null);
+    setIsModalOpen(true);
+  };
+
+  const handleEditEquipment = (item) => {
+    setEditingEquipment(item);
+    setIsModalOpen(true);
+  };
+
+  const handleSaveEquipment = async (formData) => {
+    try {
+      // Validate required fields
+      const requiredFields = ['brand', 'model', 'asset_tag', 'serial'];
+      const missingFields = requiredFields.filter(field => !formData[field] || formData[field].trim() === '');
+      
+      if (missingFields.length > 0) {
+        alert(`Please fill in required fields: ${missingFields.map(f => f.replace('_', ' ').toUpperCase()).join(', ')}`);
+        return;
+      }
+
+      // Check for duplicates
+      const duplicateCheck = await checkDuplicates({
+        serial: formData.serial,
+        assetTag: formData.asset_tag,
+        excludeId: editingEquipment?.id
+      });
+
+      if (duplicateCheck.hasDuplicates) {
+        const confirmed = window.confirm(
+          `Warning: ${duplicateCheck.messages.join('\n')}\n\n` +
+          `Existing equipment:\n${duplicateCheck.duplicates.map(d => 
+            `- ${d.model} (${d.asset_tag || 'No Tag'}) - ${d.status}`
+          ).join('\n')}\n\nDo you want to continue saving?`
+        );
+        if (!confirmed) return;
+      }
+
+      if (editingEquipment) {
+        await updateEquipment(editingEquipment.id, formData, 'system');
+        setToast({ message: 'Equipment updated successfully', type: 'success' });
+      } else {
+        await addEquipment(formData, 'system');
+        setToast({ message: 'Equipment added successfully', type: 'success' });
+      }
+      setIsModalOpen(false);
+      setEditingEquipment(null);
+    } catch (err) {
+      setToast({ message: 'Error saving equipment: ' + err.message, type: 'error' });
+    }
+  };
+
+  const handleViewHistory = (item) => {
+    setSelectedHistoryEquipment(item);
+    setHistoryModalOpen(true);
+  };
+
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const searchInputRef = useRef(null);
+  const fileInputRef = useRef(null);
+
+  // Sync table horizontal scroll between header and body
+  useEffect(() => {
+    const headerWrapper = document.getElementById('table-header-wrapper');
+    const bodyContainer = document.getElementById('table-body-container');
+    
+    if (!headerWrapper || !bodyContainer) return;
+    
+    let isSyncing = false;
+    
+    const syncScroll = (source, target) => {
+      if (isSyncing) return;
+      isSyncing = true;
+      target.scrollLeft = source.scrollLeft;
+      setTimeout(() => { isSyncing = false; }, 10);
+    };
+    
+    const handleHeaderScroll = () => syncScroll(headerWrapper, bodyContainer);
+    const handleBodyScroll = () => syncScroll(bodyContainer, headerWrapper);
+    
+    headerWrapper.addEventListener('scroll', handleHeaderScroll, { passive: true });
+    bodyContainer.addEventListener('scroll', handleBodyScroll, { passive: true });
+    
+    // Initial sync
+    headerWrapper.scrollLeft = bodyContainer.scrollLeft;
+    
+    return () => {
+      headerWrapper.removeEventListener('scroll', handleHeaderScroll);
+      bodyContainer.removeEventListener('scroll', handleBodyScroll);
+    };
+  }, [activePage, equipLoading]); // Re-run when inventory page loads or data changes
+
+  // Keyboard shortcut for search (Cmd/Ctrl + K)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+      if (e.key === 'Escape' && isFilterOpen) {
+        setIsFilterOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isFilterOpen]);
+
+  // Export All Data (JSON)
+  const exportAllData = () => {
+    const data = { equipment, hubs, exportedAt: new Date().toISOString() };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `inventory-data-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  // Export Excel with proper column widths
+  const exportCSV = () => {
+    const headers = ['Model', 'Brand', 'Asset Tag', 'Serial', 'Type', 'Hub', 'Location', 'Assigned To', 'Condition', 'Status', 'Purchase Date', 'Warranty Expiry', 'Last Service'];
+    const rows = equipment.map(item => [
+      item.model,
+      item.brand,
+      item.asset_tag,
+      item.serial,
+      item.equipment_type,
+      item.hub,
+      item.location,
+      item.assigned_to,
+      item.condition,
+      item.status,
+      item.purchase_date || '',
+      item.warranty_date || '',
+      item.last_service
+    ]);
+
+    // Create worksheet
+    const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+
+    // Set column widths to prevent ###
+    ws['!cols'] = [
+      { wch: 25 }, // Model
+      { wch: 15 }, // Brand
+      { wch: 15 }, // Asset Tag
+      { wch: 20 }, // Serial
+      { wch: 12 }, // Type
+      { wch: 15 }, // Hub
+      { wch: 20 }, // Location
+      { wch: 20 }, // Assigned To
+      { wch: 12 }, // Condition
+      { wch: 12 }, // Status
+      { wch: 15 }, // Purchase Date
+      { wch: 18 }, // Warranty Expiry
+      { wch: 15 }  // Last Service
+    ];
+
+    // Create workbook and save
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Inventory');
+    XLSX.writeFile(wb, `inventory-${new Date().toISOString().split('T')[0]}.xlsx`);
+  };
+
+  // Download Excel Template for bulk import
+  const downloadTemplate = async () => {
+    const workbook = new ExcelJS.Workbook();
+    
+    // Create instructions sheet
+    const instructionsSheet = workbook.addWorksheet('Instructions');
+    const instructions = [
+      ['INSTRUCTIONS FOR BULK IMPORT'],
+      [''],
+      ['1. Do NOT change column headers'],
+      ['2. Fill in the data in the "Template" sheet'],
+      ['3. Required fields: Model, Brand, Asset Tag, Serial'],
+      ['4. Optional fields: Type, Hub, Location, Assigned To, Condition, Status, Purchase Date, Warranty Expiry, Last Service'],
+      [''],
+      ['VALID VALUES:'],
+      [''],
+      ['Condition:'],
+      ['  - new'],
+      ['  - good'],
+      ['  - fair'],
+      ['  - poor'],
+      [''],
+      ['Status:'],
+      ['  - available'],
+      ['  - active'],
+      ['  - maintenance'],
+      ['  - retired'],
+      [''],
+      ['Type:'],
+      ['  - Laptop'],
+      ['  - Desktop'],
+      ['  - Monitor'],
+      ['  - Printer'],
+      ['  - Other'],
+      [''],
+      ['Hub:'],
+      ['  - Must match existing hub name in the system'],
+      ['  - Example: Main Hub, North Hub, South Hub'],
+      ['  - Leave blank if no hub assigned'],
+      [''],
+      ['Date Format:'],
+      ['  - Purchase Date: YYYY-MM-DD (e.g., 2024-01-15)'],
+      ['  - Warranty Expiry: YYYY-MM-DD (e.g., 2025-12-31)'],
+      ['  - Last Service: YYYY-MM-DD (e.g., 2024-01-15)'],
+      ['  - Leave blank if not applicable'],
+      [''],
+      ['IMPORTANT:'],
+      ['  - Purchase Date is required for accurate age calculation in analytics'],
+      ['  - Warranty Expiry helps track warranty expiration'],
+      ['  - Hub must match existing hub names in the system'],
+      [''],
+      ['5. Delete the example data before importing your own data'],
+      ['6. Save the file and use the Import button']
+    ];
+    
+    instructions.forEach(row => {
+      instructionsSheet.addRow(row);
+    });
+    instructionsSheet.getColumn(1).width = 60;
+
+    // Create template sheet
+    const templateSheet = workbook.addWorksheet('Template');
+    const headers = ['Model', 'Brand', 'Asset Tag', 'Serial', 'Type', 'Hub', 'Location', 'Assigned To', 'Condition', 'Status', 'Purchase Date', 'Warranty Expiry', 'Last Service'];
+    templateSheet.addRow(headers);
+
+    // Style header row
+    const headerRow = templateSheet.getRow(1);
+    headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    headerRow.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF4472C4' }
+    };
+
+    // Add example data
+    const exampleData = [
+      ['ThinkPad E470', 'Lenovo', 'LPT-001', 'SN123456789', 'Laptop', 'Main Hub', 'IT Department', 'Juan Dela Cruz', 'good', 'available', '2024-01-15', '2025-12-31', '2024-01-15'],
+      ['Dell Latitude 5420', 'Dell', 'DLL-002', 'SN987654321', 'Laptop', 'Main Hub', 'HR Department', 'Maria Santos', 'good', 'active', '2024-02-20', '2026-06-30', '2024-02-20'],
+      ['HP ProBook 450', 'HP', 'HPB-003', 'SN456789123', 'Laptop', 'Branch Hub', 'Finance', '', 'fair', 'available', '2023-11-10', '2024-11-30', '2023-11-10']
+    ];
+    exampleData.forEach(row => templateSheet.addRow(row));
+
+    // Set column widths
+    templateSheet.columns = [
+      { width: 25 }, // Model
+      { width: 15 }, // Brand
+      { width: 15 }, // Asset Tag
+      { width: 20 }, // Serial
+      { width: 12 }, // Type
+      { width: 15 }, // Hub
+      { width: 20 }, // Location
+      { width: 20 }, // Assigned To
+      { width: 12 }, // Condition
+      { width: 12 }, // Status
+      { width: 15 }, // Purchase Date
+      { width: 18 }, // Warranty Expiry
+      { width: 15 }  // Last Service
+    ];
+
+    // Add data validation dropdowns for sensitive fields
+    // Type dropdown (column E)
+    const typeList = ['Laptop', 'Desktop', 'Monitor', 'Printer', 'Other'];
+    for (let row = 2; row <= 1000; row++) {
+      templateSheet.getCell(`E${row}`).dataValidation = {
+        type: 'list',
+        allowBlank: true,
+        formulae: [`"${typeList.join(',')}"`],
+        showErrorMessage: true,
+        errorStyle: 'error',
+        error: 'Please select a valid type from the dropdown'
+      };
+    }
+
+    // Condition dropdown (column I)
+    const conditionList = ['new', 'good', 'fair', 'poor'];
+    for (let row = 2; row <= 1000; row++) {
+      templateSheet.getCell(`I${row}`).dataValidation = {
+        type: 'list',
+        allowBlank: true,
+        formulae: [`"${conditionList.join(',')}"`],
+        showErrorMessage: true,
+        errorStyle: 'error',
+        error: 'Please select a valid condition from the dropdown'
+      };
+    }
+
+    // Status dropdown (column J)
+    const statusList = ['available', 'active', 'maintenance', 'retired'];
+    for (let row = 2; row <= 1000; row++) {
+      templateSheet.getCell(`J${row}`).dataValidation = {
+        type: 'list',
+        allowBlank: true,
+        formulae: [`"${statusList.join(',')}"`],
+        showErrorMessage: true,
+        errorStyle: 'error',
+        error: 'Please select a valid status from the dropdown'
+      };
+    }
+
+    // Generate and download the file
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `inventory-template-${new Date().toISOString().split('T')[0]}.xlsx`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
+  // Import CSV/Excel
+  const handleImport = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const data = event.target.result;
+        const workbook = XLSX.read(data, { type: 'binary' });
+        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+        const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+
+        // Fetch hubs to get hub_id from hub name
+        const { data: hubsData, error: hubsError } = await supabase.from('hubs').select('*');
+        if (hubsError) {
+          throw new Error('Failed to fetch hubs: ' + hubsError.message);
+        }
+
+        // Create hub name to hub_id mapping
+        const hubMap = {};
+        hubsData.forEach(hub => {
+          hubMap[hub.name.toLowerCase()] = hub.id;
+          hubMap[hub.hub_code?.toLowerCase()] = hub.id;
+        });
+
+        const imported = jsonData.map(row => {
+          const hubName = row.Hub || row.hub || '';
+          const hubId = hubName ? (hubMap[hubName.toLowerCase()] || null) : null;
+
+          return {
+            model: row.Model || row.model || '',
+            brand: row.Brand || row.brand || '',
+            asset_tag: row['Asset Tag'] || row.asset_tag || '',
+            serial: row.Serial || row.serial || '',
+            equipment_type: row.Type || row.type || row.equipment_type || 'computer',
+            hub_id: hubId,
+            location: row.Location || row.location || '',
+            assigned_to: row['Assigned To'] || row.assigned_to || '',
+            condition: row.Condition || row.condition || 'good',
+            status: row.Status || row.status || 'available',
+            purchase_date: row['Purchase Date'] || row.purchase_date || '',
+            warranty_date: row['Warranty Expiry'] || row['Warranty Date'] || row.warranty_date || row.warranty || '',
+            last_service: row['Last Service'] || row.last_service || new Date().toISOString().split('T')[0]
+          };
+        });
+
+        console.log('Imported:', imported);
+
+        // Confirm before bulk import
+        const confirmed = window.confirm(
+          `You are about to import ${imported.length} items.\n\n` +
+          `This will add all items to the database.\n\n` +
+          `Do you want to continue?`
+        );
+
+        if (!confirmed) {
+          e.target.value = '';
+          return;
+        }
+
+        // Bulk import to Supabase
+        let successCount = 0;
+        let errorCount = 0;
+        const errors = [];
+
+        for (const item of imported) {
+          try {
+            await addEquipment(item, 'system');
+            successCount++;
+          } catch (err) {
+            errorCount++;
+            errors.push(`${item.model || item.asset_tag}: ${err.message}`);
+          }
+        }
+
+        // Show results
+        let message = `Import completed!\n\n`;
+        message += `Successfully added: ${successCount} items\n`;
+        if (errorCount > 0) {
+          message += `Failed: ${errorCount} items\n`;
+          message += `\nErrors:\n${errors.slice(0, 5).join('\n')}`;
+          if (errors.length > 5) {
+            message += `\n... and ${errors.length - 5} more errors`;
+          }
+        }
+
+        alert(message);
+
+        // Refresh data after import
+        await refresh();
+
+        e.target.value = '';
+      } catch (err) {
+        alert('Error importing file: ' + err.message);
+      }
+    };
+    reader.readAsBinaryString(file);
+  };
+
+  // Sync Data
+  const handleSync = async () => {
+    await refresh();
+    alert('Data synchronized successfully!');
+  };
+
+  // Clear Cache
+  const handleClearCache = () => {
+    if (confirm('Are you sure you want to clear all local cache? This will not delete any data from the database.')) {
+      localStorage.clear();
+      sessionStorage.clear();
+      alert('Cache cleared successfully!');
+      window.location.reload();
+    }
+  };
+
+  // Show loading screen while auth state is being resolved
+  if (authLoading) {
+    return <LoadingScreen message="Checking authentication..." />;
+  }
+
+  if (!authUser) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[var(--bg-primary)] px-4 py-8">
+        <div className="w-full max-w-md rounded-[24px] border border-[var(--border-color)] bg-[var(--bg-secondary)] p-8 shadow-[0_35px_60px_rgba(0,0,0,0.12)]">
+          <div className="mb-6 text-center">
+            <img src="/logo.png.png" alt="Logo" className="mx-auto mb-4 h-16 w-16 rounded-2xl object-cover" style={{ backgroundColor: 'white', padding: 0 }} />
+            <h1 className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>Sign in</h1>
+            <p className="mt-2 text-sm text-[var(--text-secondary)]">Access the equipment inventory and hub dashboard.</p>
+          </div>
+
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>Email</label>
+              <Input
+                type="email"
+                value={loginEmail}
+                onChange={(e) => setLoginEmail(e.target.value)}
+                placeholder="name@example.com"
+                className="w-full rounded-[14px] border-[1px] border-[var(--border-color)] bg-[var(--bg-primary)] text-[var(--text-primary)]"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>Password</label>
+              <Input
+                type="password"
+                value={loginPassword}
+                onChange={(e) => setLoginPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full rounded-[14px] border-[1px] border-[var(--border-color)] bg-[var(--bg-primary)] text-[var(--text-primary)]"
+                required
+              />
+            </div>
+
+            {authError && (
+              <p className="text-sm text-[var(--accent-red)]">{authError}</p>
+            )}
+
+            <Button type="submit" className="w-full py-3 text-sm font-semibold" disabled={authLoading}>
+              {authLoading ? 'Signing in…' : 'Sign in'}
+            </Button>
+          </form>
+
+          <p className="mt-6 text-center text-xs text-[var(--text-tertiary)]">
+            Use your Supabase credentials to log in.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show page-specific loading screen
+  if (pageLoading) {
+    const loadingMessage = activePage === 'inventory' 
+      ? 'Loading Equipment Inventory...' 
+      : 'Loading Dashboard Analytics...';
+    return <LoadingScreen message={loadingMessage} />;
+  }
+
+  // Show page-specific loading screen
+  if (pageLoading) {
+    const loadingMessage = activePage === 'inventory' 
+      ? 'Loading Equipment Inventory...' 
+      : 'Loading Dashboard Analytics...';
+    return <LoadingScreen message={loadingMessage} />;
+  }
+
+  return (
+    <div className={`min-h-screen flex ${effectiveTheme}`} style={{ background: 'var(--bg-primary)' }}>
+      {/* Sidebar */}
+      <div className="fixed left-0 top-0 h-screen z-20">
+        <Sidebar
+          activePage={activePage}
+          setActivePage={setActivePage}
+          inventoryCount={stats?.total || 0}
+          hubsCount={hubs.length}
+          effectiveTheme={effectiveTheme}
+          isCollapsed={isSidebarCollapsed}
+          onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+          onLogout={handleLogout}
+        />
+      </div>
+
+      <div className={`flex-1 flex flex-col min-w-0 overflow-hidden transition-all duration-300 ${isSidebarCollapsed ? 'ml-20' : 'ml-64'}`}>
+
+        {/* Page Content */}
+        <div
+          className="flex-1 p-6 overflow-y-auto gradient-mesh"
+          style={{ background: 'var(--bg-primary)', paddingBottom: '65px' }}
+        >
+          {activePage === 'dashboard' && (
+            <div className="max-w-7xl mx-auto space-y-6 page-transition">
+              <AnalyticsDashboard equipment={equipment} />
+            </div>
+          )}
+
+          {activePage === 'analytics' && (
+            <div className="max-w-7xl mx-auto space-y-6 page-transition">
+              {/* Analytics Header with Filters */}
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 
+                      className="text-[11px] font-bold uppercase tracking-[0.2em] mb-2"
+                      style={{ color: 'var(--accent-primary)' }}
+                    >Insights</h3>
+                    <h2 className="text-3xl font-black tracking-tight">Analytics</h2>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-tertiary)' }}>
+                    <TrendingUp size={16} />
+                    <span>Real-time data analysis</span>
+                  </div>
+                </div>
+
+                {/* Analytics Filters Bar */}
+                <div
+                  className="flex flex-wrap items-center gap-3 p-4 rounded-[16px] glass-card-modern"
+                >
+                  <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>Filter by:</span>
+                  
+                  {/* Hub Filter */}
+                  <select
+                    value={analyticsFilters.hub}
+                    onChange={(e) => setAnalyticsFilters({...analyticsFilters, hub: e.target.value})}
+                    className="h-9 px-3 pr-8 rounded-full text-xs font-medium cursor-pointer"
+                    style={{ 
+                      WebkitAppearance: 'none',
+                      MozAppearance: 'none',
+                      appearance: 'none',
+                      background: analyticsFilters.hub !== 'all' ? 'var(--accent-primary)' : 'var(--bg-glass-light)',
+                      color: analyticsFilters.hub !== 'all' ? 'white' : 'var(--text-secondary)',
+                      border: `1px solid ${analyticsFilters.hub !== 'all' ? 'var(--accent-primary)' : 'var(--border-glass)'}`,
+                      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='${analyticsFilters.hub !== 'all' ? 'white' : 'currentColor'}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
+                      backgroundRepeat: 'no-repeat',
+                      backgroundPosition: 'right 10px center',
+                      backgroundSize: '12px 12px'
+                    }}
+                  >
+                    <option value="all">All Hubs</option>
+                    {hubs.map(hub => (
+                      <option key={hub.id} value={hub.id}>{hub.name}</option>
+                    ))}
+                  </select>
+
+                  {/* Status Filter */}
+                  <select
+                    value={analyticsFilters.status}
+                    onChange={(e) => setAnalyticsFilters({...analyticsFilters, status: e.target.value})}
+                    className="h-9 px-3 pr-8 rounded-full text-xs font-medium cursor-pointer"
+                    style={{ 
+                      WebkitAppearance: 'none',
+                      MozAppearance: 'none',
+                      appearance: 'none',
+                      background: analyticsFilters.status ? 'var(--accent-primary)' : 'var(--bg-glass-light)',
+                      color: analyticsFilters.status ? 'white' : 'var(--text-secondary)',
+                      border: `1px solid ${analyticsFilters.status ? 'var(--accent-primary)' : 'var(--border-glass)'}`,
+                      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='${analyticsFilters.status ? 'white' : 'currentColor'}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
+                      backgroundRepeat: 'no-repeat',
+                      backgroundPosition: 'right 10px center',
+                      backgroundSize: '12px 12px'
+                    }}
+                  >
+                    <option value="">All Status</option>
+                    <option value="active">Active</option>
+                    <option value="available">Available</option>
+                    <option value="maintenance">Maintenance</option>
+                    <option value="retired">Retired</option>
+                  </select>
+
+                  {/* Condition Filter */}
+                  <select
+                    value={analyticsFilters.condition}
+                    onChange={(e) => setAnalyticsFilters({...analyticsFilters, condition: e.target.value})}
+                    className="h-9 px-3 pr-8 rounded-full text-xs font-medium cursor-pointer"
+                    style={{ 
+                      WebkitAppearance: 'none',
+                      MozAppearance: 'none',
+                      appearance: 'none',
+                      background: analyticsFilters.condition ? 'var(--accent-primary)' : 'var(--bg-glass-light)',
+                      color: analyticsFilters.condition ? 'white' : 'var(--text-secondary)',
+                      border: `1px solid ${analyticsFilters.condition ? 'var(--accent-primary)' : 'var(--border-glass)'}`,
+                      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='${analyticsFilters.condition ? 'white' : 'currentColor'}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
+                      backgroundRepeat: 'no-repeat',
+                      backgroundPosition: 'right 10px center',
+                      backgroundSize: '12px 12px'
+                    }}
+                  >
+                    <option value="">All Condition</option>
+                    <option value="new">New</option>
+                    <option value="good">Good</option>
+                    <option value="fair">Fair</option>
+                    <option value="poor">Poor</option>
+                  </select>
+
+                  {/* Date Range Filter */}
+                  <select
+                    value={analyticsFilters.dateRange}
+                    onChange={(e) => setAnalyticsFilters({...analyticsFilters, dateRange: e.target.value})}
+                    className="h-9 px-3 pr-8 rounded-full text-xs font-medium cursor-pointer"
+                    style={{ 
+                      WebkitAppearance: 'none',
+                      MozAppearance: 'none',
+                      appearance: 'none',
+                      background: analyticsFilters.dateRange !== 'all' ? 'var(--accent-primary)' : 'var(--bg-glass-light)',
+                      color: analyticsFilters.dateRange !== 'all' ? 'white' : 'var(--text-secondary)',
+                      border: `1px solid ${analyticsFilters.dateRange !== 'all' ? 'var(--accent-primary)' : 'var(--border-glass)'}`,
+                      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='${analyticsFilters.dateRange !== 'all' ? 'white' : 'currentColor'}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
+                      backgroundRepeat: 'no-repeat',
+                      backgroundPosition: 'right 10px center',
+                      backgroundSize: '12px 12px'
+                    }}
+                  >
+                    <option value="all">All Time</option>
+                    <option value="30days">Last 30 Days</option>
+                    <option value="90days">Last 90 Days</option>
+                    <option value="1year">Last Year</option>
+                  </select>
+
+                  {/* Clear Filters */}
+                  {(analyticsFilters.status || analyticsFilters.condition || analyticsFilters.hub !== 'all' || analyticsFilters.dateRange !== 'all') && (
+                    <button
+                      onClick={() => setAnalyticsFilters({ status: '', condition: '', equipmentType: '', hub: 'all', dateRange: 'all' })}
+                      className="h-9 px-3 rounded-full text-xs font-medium flex items-center gap-1"
+                      style={{ 
+                        background: 'var(--bg-glass-light)',
+                        color: 'var(--text-secondary)',
+                        border: '1px solid var(--border-glass)'
+                      }}
+                    >
+                      <X size={12} />
+                      Clear
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Analytics Dashboard with Filtered Data */}
+              <AnalyticsDashboard 
+                equipment={equipment} 
+                filters={analyticsFilters}
+              />
+            </div>
+          )}
+
+          {activePage === 'settings' && (
+            <div className="max-w-4xl mx-auto space-y-8 page-transition">
+              <div>
+                <h3
+                  className="text-[11px] font-bold uppercase tracking-[0.2em] mb-2"
+                  style={{ color: 'var(--accent-primary)' }}
+                >Configuration</h3>
+                <h2 className="text-3xl font-black tracking-tight">System Settings</h2>
+              </div>
+
+              {/* Theme Settings */}
+              <div className="glass-card-modern p-6">
+                <h4 className="text-lg font-bold mb-6 flex items-center gap-2">
+                  <Palette size={20} style={{ color: 'var(--accent-purple)' }} />
+                  Appearance
+                </h4>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                  {[
+                    { id: themes.LIGHT, label: 'Light', icon: Sun },
+                    { id: themes.DARK, label: 'Dark', icon: Moon },
+                    { id: themes.SYSTEM, label: 'System', icon: Monitor },
+                    { id: themes.CONTRAST, label: 'High Contrast', icon: Eye },
+                    { id: themes.SEPIA, label: 'Sepia', icon: Palette },
+                    { id: themes.DARK_RED, label: 'Dark Red', icon: Database },
+                    { id: themes.OCEAN_BLUE, label: 'Ocean Blue', icon: Droplets },
+                    { id: themes.FOREST_GREEN, label: 'Forest Green', icon: Leaf },
+                    { id: themes.ROYAL_PURPLE, label: 'Royal Purple', icon: Sparkles },
+                    { id: themes.SUNSET_ORANGE, label: 'Sunset Orange', icon: Flame },
+                    { id: themes.PINK_ROSE, label: 'Pink Rose', icon: Heart },
+                    { id: themes.CYAN_TEAL, label: 'Cyan Teal', icon: Waves },
+                    { id: themes.MIDNIGHT_BLUE, label: 'Midnight Blue', icon: Star },
+                    { id: themes.GOLD_AMBER, label: 'Gold Amber', icon: Gem },
+                  ].map((t) => (
+                    <button
+                      key={t.id}
+                      onClick={() => setTheme(t.id)}
+                      className={`p-4 rounded-[16px] flex flex-col items-center gap-2 transition-all ${
+                        theme === t.id ? 'ring-2' : ''
+                      }`}
+                      style={{
+                        background: theme === t.id ? 'var(--bg-glass-light)' : 'transparent',
+                        border: `1px solid ${theme === t.id ? 'var(--accent-primary)' : 'var(--border-glass)'}`,
+                        ringColor: 'var(--accent-primary)'
+                      }}
+                    >
+                      <t.icon size={24} style={{ color: theme === t.id ? 'var(--accent-primary)' : 'var(--text-secondary)' }} />
+                      <span className="text-xs font-medium">{t.label}</span>
+                    </button>
+                  ))}
+                </div>
+                <p className="text-xs mt-4" style={{ color: 'var(--text-tertiary)' }}>
+                  Choose a theme that works best for your environment. High contrast mode improves readability for users with visual impairments.
+                </p>
+              </div>
+
+              {/* General Settings */}
+              <div className="glass-card-modern p-6">
+                <h4 className="text-lg font-bold mb-6 flex items-center gap-2">
+                  <Settings size={20} style={{ color: 'var(--accent-primary)' }} />
+                  General Settings
+                </h4>
+                <div className="space-y-4">
+                  {[
+                    { label: 'Auto-refresh Data', desc: 'Refresh inventory every 5 minutes', active: true },
+                    { label: 'Compact View', desc: 'Reduce spacing in tables', active: false },
+                    { label: 'Desktop Notifications', desc: 'Get alerts for system events', active: true },
+                  ].map((setting) => (
+                    <div 
+                      key={setting.label}
+                      className="flex items-center justify-between py-3"
+                      style={{ borderBottom: '1px solid var(--border-glass)' }}
+                    >
+                      <div>
+                        <p className="font-medium">{setting.label}</p>
+                        <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>{setting.desc}</p>
+                      </div>
+                      <div 
+                        className={`w-12 h-6 rounded-full relative cursor-pointer transition-colors ${
+                          setting.active ? '' : ''
+                        }`}
+                        style={{ background: setting.active ? 'var(--accent-primary)' : 'var(--bg-glass-light)' }}
+                      >
+                        <div 
+                          className="w-5 h-5 bg-white rounded-full absolute top-0.5 transition-all"
+                          style={{ 
+                            right: setting.active ? '2px' : 'auto',
+                            left: setting.active ? 'auto' : '2px'
+                          }}
+                        ></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Database Settings */}
+              <div className="glass-card-modern p-6">
+                <h4 className="text-lg font-bold mb-6 flex items-center gap-2">
+                  <Database size={20} style={{ color: 'var(--accent-green)' }} />
+                  Database Connection
+                </h4>
+                <div className="space-y-4">
+                  <div>
+                    <label 
+                      className="text-xs font-bold uppercase tracking-widest mb-2 block"
+                      style={{ color: 'var(--text-tertiary)' }}
+                    >Supabase URL</label>
+                    <Input value="https://zrgprdgvfcojfeqkurke.supabase.co" readOnly />
+                  </div>
+                  <div className="flex items-center gap-2" style={{ color: 'var(--accent-green)' }}>
+                    <div 
+                      className="w-2 h-2 rounded-full animate-pulse"
+                      style={{ background: 'var(--accent-green)', boxShadow: '0 0 10px var(--accent-green)' }}
+                    ></div>
+                    <span className="text-sm font-medium">Connected</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Data Management */}
+              <div className="glass-card-modern p-6">
+                <h4 className="text-lg font-bold mb-6 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+                  <FileDown size={20} style={{ color: 'var(--accent-orange)' }} strokeWidth={2} />
+                  Data Management
+                </h4>
+                <div className="flex flex-wrap gap-3">
+                  <Button variant="secondary" className="gap-2" onClick={exportAllData}>
+                    <FileDown size={18} strokeWidth={2} />
+                    Export All Data
+                  </Button>
+                  <Button variant="glass" className="gap-2" onClick={handleSync}>
+                    <RefreshCw size={18} strokeWidth={2} />
+                    Sync Now
+                  </Button>
+                  <Button variant="danger" size="sm" className="gap-2" onClick={handleClearCache}>
+                    <Trash2 size={18} strokeWidth={2} />
+                    Clear Cache
+                  </Button>
+                </div>
+              </div>
+
+              {/* System Info */}
+              <div className="glass-card-modern p-6">
+                <h4 
+                  className="text-sm font-bold uppercase tracking-widest mb-4"
+                  style={{ color: 'var(--text-tertiary)' }}
+                >System Information</h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  {[
+                    { label: 'Version', value: 'v2.0.0' },
+                    { label: 'Build', value: 'React + Vite + iOS 26' },
+                    { label: 'Database', value: 'Supabase' },
+                    { label: 'Last Updated', value: new Date().toLocaleDateString() },
+                  ].map((info) => (
+                    <div key={info.label}>
+                      <span style={{ color: 'var(--text-secondary)' }}>{info.label}:</span>
+                      <span className="ml-2 font-medium">{info.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activePage === 'inventory' && (
+            <div className="max-w-7xl mx-auto space-y-8 animate-slide-in">
+              <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div>
+                  <h3 
+                    className="text-[11px] font-bold uppercase tracking-[0.2em] mb-2"
+                    style={{ color: 'var(--accent-primary)' }}
+                  >Assets</h3>
+                  <h2 className="text-3xl font-black tracking-tight" style={{ color: 'var(--text-primary)' }}>Equipment Inventory</h2>
+                  <p className="text-sm font-medium mt-2" style={{ color: 'var(--text-secondary)' }}>
+                    Global tracking across {hubs.length} active logistics hubs.
+                  </p>
+
+                  <div className="inventory-summary mt-6 grid gap-4 sm:grid-cols-3">
+                    <div className="inventory-stat">
+                      <p className="stat-label">Total Assets</p>
+                      <p className="stat-value">{totalCount}</p>
+                    </div>
+                    <div className="inventory-stat">
+                      <p className="stat-label">Current View</p>
+                      <p className="stat-value">{equipment.length} items</p>
+                    </div>
+                    <div className="inventory-stat">
+                      <p className="stat-label">Total Hubs</p>
+                      <p className="stat-value">{hubs.length}</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+                  <div className="grid gap-3 sm:grid-cols-3 bg-[var(--bg-glass-light)] p-4 rounded-[24px] border border-[var(--border-glass)] shadow-[0_16px_50px_rgba(0,0,0,0.08)]">
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleImport}
+                      accept=".csv,.xlsx,.xls"
+                      className="hidden"
+                    />
+                    <Button variant="secondary" className="w-full h-12 px-5 gap-2 sm:w-auto" onClick={downloadTemplate}>
+                      <FileDown size={18} strokeWidth={2} />
+                      Download Template
+                    </Button>
+                    <Button variant="secondary" className="w-full h-12 px-5 gap-2 sm:w-auto" onClick={() => fileInputRef.current?.click()}>
+                      <FileUp size={18} strokeWidth={2} />
+                      Import
+                    </Button>
+                    <Button variant="secondary" className="w-full h-12 px-5 gap-2 sm:w-auto" onClick={exportCSV}>
+                      <FileDown size={18} strokeWidth={2} />
+                      Export CSV
+                    </Button>
+                  </div>
+                  <div className="flex justify-end lg:justify-end">
+                    <Button variant="primary" className="h-12 px-6 gap-2 shadow-[0_12px_24px_rgba(99,102,241,0.25)]" onClick={handleAddEquipment}>
+                      <Plus size={20} strokeWidth={2.5} />
+                      Add New Equipment
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Inventory Table Card */}
+              {isFullView && <div className="fixed inset-0 z-40 bg-slate-950/70 backdrop-blur-sm" />}
+              <div className={isFullView ? 'fixed inset-4 z-50 overflow-hidden' : ''}>
+                <Card glass={false} className={`flex flex-col ${isFullView ? 'min-h-[calc(100vh-7rem)]' : ''}`}>
+                  {/* Sticky Search/Filter Header */}
+                  <div
+                    className="sticky top-0 z-20 p-6"
+                    style={{
+                      borderBottom: '1px solid var(--border-glass)',
+                      background: 'var(--bg-glass-light)',
+                      backdropFilter: 'blur(20px)'
+                    }}
+                  >
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                      <div className="flex flex-col gap-3 w-full lg:w-auto">
+                        <div
+                          className="relative group rounded-[12px] border border-[var(--border-glass)] bg-[var(--bg-glass-light)]"
+                          style={{ transition: 'all 0.2s ease' }}
+                        >
+                          <div className="flex items-center h-10 px-3">
+                            <Search
+                              size={18}
+                              strokeWidth={2}
+                              style={{ color: 'var(--text-tertiary)' }}
+                            />
+                            <input
+                              ref={searchInputRef}
+                              type="text"
+                              placeholder="Search assets..."
+                              className="bg-transparent border-none outline-none text-sm ml-2 w-48 placeholder:text-[var(--text-tertiary)]"
+                              style={{ color: 'var(--text-primary)' }}
+                              value={searchQuery}
+                              onChange={(e) => {
+                                setSearchQuery(e.target.value);
+                                setCurrentPage(1);
+                              }}
+                            />
+                            {searchQuery && (
+                              <button
+                                onClick={() => {
+                                  setSearchQuery('');
+                                  searchInputRef.current?.focus();
+                                }}
+                                className="p-1 rounded-md hover:bg-white/10 transition-colors"
+                                style={{ color: 'var(--text-tertiary)' }}
+                              >
+                                <X size={14} strokeWidth={2} />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <select
+                            value={filters.status}
+                            onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+                            className="h-9 px-3 pr-8 rounded-full text-xs font-medium cursor-pointer transition-all hover:opacity-80"
+                            style={{
+                              WebkitAppearance: 'none',
+                              MozAppearance: 'none',
+                              appearance: 'none',
+                              background: filters.status ? 'var(--accent-primary)' : 'var(--bg-glass-light)',
+                              color: filters.status ? 'white' : 'var(--text-secondary)',
+                              border: `1px solid ${filters.status ? 'var(--accent-primary)' : 'var(--border-glass)'}`,
+                              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='${filters.status ? 'white' : 'currentColor'}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
+                              backgroundRepeat: 'no-repeat',
+                              backgroundPosition: 'right 10px center',
+                              backgroundSize: '12px 12px'
+                            }}
+                          >
+                            <option value="">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="available">Available</option>
+                            <option value="maintenance">Maintenance</option>
+                            <option value="retired">Retired</option>
+                          </select>
+                          <select
+                            value={filters.condition}
+                            onChange={(e) => setFilters({ ...filters, condition: e.target.value })}
+                            className="h-9 px-3 pr-8 rounded-full text-xs font-medium cursor-pointer transition-all hover:opacity-80"
+                            style={{
+                              WebkitAppearance: 'none',
+                              MozAppearance: 'none',
+                              appearance: 'none',
+                              background: filters.condition ? 'var(--accent-primary)' : 'var(--bg-glass-light)',
+                              color: filters.condition ? 'white' : 'var(--text-secondary)',
+                              border: `1px solid ${filters.condition ? 'var(--accent-primary)' : 'var(--border-glass)'}`,
+                              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='${filters.condition ? 'white' : 'currentColor'}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
+                              backgroundRepeat: 'no-repeat',
+                              backgroundPosition: 'right 10px center',
+                              backgroundSize: '12px 12px'
+                            }}
+                          >
+                            <option value="">All Condition</option>
+                            <option value="new">New</option>
+                            <option value="good">Good</option>
+                            <option value="fair">Fair</option>
+                            <option value="poor">Poor</option>
+                          </select>
+                          {(filters.condition || filters.status) && (
+                            <button
+                              onClick={() => setFilters({ condition: '', status: '' })}
+                              className="h-9 px-3 rounded-full text-xs font-medium flex items-center gap-1 transition-all hover:opacity-80"
+                              style={{
+                                background: 'var(--bg-glass-light)',
+                                color: 'var(--text-secondary)',
+                                border: '1px solid var(--border-glass)'
+                              }}
+                            >
+                              <X size={12} />
+                              Clear
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between gap-3 flex-wrap">
+                        <p
+                          className="text-[11px] font-bold uppercase tracking-widest"
+                          style={{ color: 'var(--text-tertiary)' }}
+                        >
+                          Showing {equipment.length} of {totalCount} Assets
+                        </p>
+                        <Button
+                          variant="outline"
+                          className="h-10 px-4 gap-2 border-[1.5px] border-[var(--accent-primary)] text-[var(--accent-primary)] hover:bg-[var(--accent-primary)] hover:text-white"
+                          title="Toggle full inventory table view"
+                          onClick={() => setIsFullView(!isFullView)}
+                        >
+                          {isFullView ? <Minimize2 size={16} strokeWidth={2} /> : <Maximize2 size={16} strokeWidth={2} />}
+                          {isFullView ? 'Exit Full View' : 'Full View'}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Table with Sticky Header - Single Table */}
+                <div className="rounded-[16px] border border-[var(--border-color)] bg-[var(--bg-secondary)] overflow-hidden">
+                  <div 
+                    className="overflow-auto relative custom-scrollbar" 
+                    style={{ maxHeight: 'calc(100vh - 185px)', scrollbarGutter: 'stable' }}
+                  >
+                    <table className="text-left border-collapse w-full excel-grid" style={{ tableLayout: 'auto' }}>
+                      <thead className="sticky top-0" style={{ zIndex: 50, background: 'var(--bg-secondary)', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)', borderBottom: '3px solid var(--accent-primary)' }}>
+                        <tr>
+                          <th className="sticky left-0 top-0 px-0 py-0 text-center font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ zIndex: 150, background: 'var(--bg-secondary)', isolation: 'isolate', borderRight: '2px solid var(--border-color)' }}>
+                            <div style={{ zIndex: 151, padding: '12px 12px', background: 'var(--bg-secondary)', color: 'var(--accent-primary)', fontWeight: '800' }}>#</div>
+                          </th>
+                          <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Equipment</th>
+                          <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Asset Tag</th>
+                          <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Serial</th>
+                          <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Type</th>
+                          <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Hub</th>
+                          <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Date Purchase</th>
+                          <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Accessories</th>
+                          <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Location</th>
+                          <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Assigned</th>
+                          <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Cond</th>
+                          <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Status</th>
+                          <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Warranty</th>
+                          <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Added</th>
+                          <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Updated</th>
+                          <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', letterSpacing: '0.1em', fontWeight: '800' }}>Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {equipment.length > 0 ? (
+                          equipment.map((item, index) => {
+                            const isAvailable = item.status && item.status.toLowerCase() === 'available';
+                            const hasAssignment = item.assigned_to && item.assigned_to.trim();
+                            
+                            return (
+                              <tr 
+                                key={item.id} 
+                                className={`excel-row table-row-hover ${index % 2 === 0 ? 'excel-row-even' : 'excel-row-odd'} hover:bg-[var(--accent-primary)]/5 cursor-pointer`}
+                                style={(isAvailable && hasAssignment) ? { borderLeft: '3px solid var(--accent-red)' } : {}}
+                                onClick={() => setSelectedCell({ row: index, col: null })}
+                              >
+                                <td 
+                                  className={`sticky left-0 px-0 py-0 text-sm text-[var(--text-primary)] text-center border-r border-[var(--border-color)] ${selectedCell?.row === index && selectedCell?.col === 0 ? 'cell-selected' : ''}`}
+                                  style={{ position: 'sticky', left: 0, zIndex: 10, background: 'var(--bg-secondary)', isolation: 'isolate' }}
+                                  onClick={(e) => { e.stopPropagation(); setSelectedCell({ row: index, col: 0 }); }}
+                                >
+                                  <div style={{ 
+                                    position: 'relative',
+                                    zIndex: 11,
+                                    padding: '8px 12px',
+                                    height: '100%',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    background: 'var(--bg-secondary)'
+                                  }}>
+                                    {index + 1}
+                                  </div>
+                                </td>
+                                <td 
+                                  className={`px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)] overflow-hidden ${selectedCell?.row === index && selectedCell?.col === 1 ? 'cell-selected' : ''}`}
+                                  onClick={(e) => { e.stopPropagation(); setSelectedCell({ row: index, col: 1 }); }}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <div className="flex-shrink-0">
+                                      {item.equipment_type?.toLowerCase().includes('laptop') ? (
+                                        <Laptop size={16} />
+                                      ) : (
+                                        <Database size={16} />
+                                      )}
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                      <div className="flex items-center gap-1.5">
+                                        <p className="font-semibold text-sm truncate text-[var(--text-primary)]">{item.model || 'Unknown'}</p>
+                                        {(() => {
+                                          const isAvailable = item.status && item.status.toLowerCase() === 'available';
+                                          const hasAssignment = item.assigned_to && item.assigned_to.trim();
+                                          if (isAvailable && hasAssignment) {
+                                            const warningMsg = `Warning: Assigned to "${item.assigned_to.trim()}" but status is "Available"`;
+                                            return (
+                                              <span 
+                                                title={warningMsg}
+                                                className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold whitespace-nowrap cursor-help"
+                                                style={{ background: 'var(--accent-orange)', color: 'white' }}
+                                              >
+                                                ⚠️ CHECK
+                                              </span>
+                                            );
+                                          }
+                                          return null;
+                                        })()}
+                                      </div>
+                                      <p className="text-[10px] text-[var(--text-secondary)]">{item.brand || 'No Brand'}</p>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                  {item.asset_tag || <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>}
+                                </td>
+                                <td 
+                                  className={`px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)] ${selectedCell?.row === index && selectedCell?.col === 2 ? 'cell-selected' : ''}`}
+                                  onClick={(e) => { e.stopPropagation(); setSelectedCell({ row: index, col: 2 }); }}
+                                >
+                                  {item.serial || <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>}
+                                </td>
+                                <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                  {item.equipment_type || <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>}
+                                </td>
+                                <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                  {item.hub || <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>}
+                                </td>
+                                <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                  {item.purchase_date ? new Date(item.purchase_date).toLocaleDateString() : <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>}
+                                </td>
+                                <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                  {(() => {
+                                    let accessories = item.accessories;
+                                    if (typeof accessories === 'string') {
+                                      try { accessories = JSON.parse(accessories); } catch (e) { accessories = []; }
+                                    }
+                                    const accessoryLabels = {
+                                      'charger': 'Charger', 'mouse': 'Mouse', 'mousepad': 'Mousepad',
+                                      'keyboard': 'Keyboard', 'webcam': 'Webcam', 'headset': 'Headset',
+                                      'dongle': 'USB Dongle', 'bag': 'Laptop Bag', 'dock': 'Docking Station',
+                                      'case': 'Case', 'stylus': 'Stylus', 'screen-protector': 'Screen Protector',
+                                      'stand': 'Stand', 'power-cable': 'Power Cable', 'usb-cable': 'USB Cable',
+                                      'hdmi-cable': 'HDMI Cable', 'displayport-cable': 'DisplayPort Cable',
+                                      'vga-cable': 'VGA Cable', 'ethernet-cable': 'Ethernet Cable',
+                                      'ink-toner': 'Ink/Toner', 'paper-tray': 'Paper Tray', 'label-roll': 'Label Roll',
+                                      'ribbon': 'Ribbon', 'battery': 'Battery', 'mount': 'Mount',
+                                      'antenna': 'Antenna', 'manual': 'Manual', 'other': 'Other'
+                                    };
+                                    if (!accessories || !Array.isArray(accessories) || accessories.length === 0) {
+                                      return <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>;
+                                    }
+                                    const labels = accessories.map(a => accessoryLabels[a.type] || a.type);
+                                    const display = labels.slice(0, 2).join(', ');
+                                    const more = labels.length > 2 ? ` +${labels.length - 2} more` : '';
+                                    return (
+                                      <span title={labels.join(', ')}>
+                                        {display}{more && <span className="text-[var(--text-secondary)]">{more}</span>}
+                                      </span>
+                                    );
+                                  })()}
+                                </td>
+                                <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                  {item.location || <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>}
+                                </td>
+                                <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                  {(() => {
+                                    if (item.assigned_to && item.assigned_to.trim()) {
+                                      return item.assigned_to;
+                                    }
+                                    if (item.status === 'available') {
+                                      return <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>;
+                                    }
+                                    return <span style={{ color: 'var(--text-tertiary)', fontStyle: 'italic' }}>Not assigned</span>;
+                                  })()}
+                                </td>
+                            <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                  <span className={`status-badge status-${(item.condition || 'unknown').toString().toLowerCase()}`}>
+                                    {item.condition || '—'}
+                                  </span>
+                                </td>
+                            <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                  <span className={`status-badge status-${(item.status || 'unknown').toString().toLowerCase()}`}>
+                                    {item.status || '—'}
+                                  </span>
+                                  {(() => {
+                                    const isAvailable = item.status && item.status.toLowerCase() === 'available';
+                                    const hasAssignment = item.assigned_to && item.assigned_to.trim();
+                                    if (isAvailable && hasAssignment) {
+                                      return (
+                                        <span 
+                                          title={`Warning: Assigned to "${item.assigned_to.trim()}" but status is "Available"`}
+                                          className="status-warning-icon"
+                                        >
+                                          !
+                                        </span>
+                                      );
+                                    }
+                                    return null;
+                                  })()}
+                                </td>
+                                <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                  {(() => {
+                                    if (!item.warranty_date) {
+                                      return <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>;
+                                    }
+                                    const warranty = new Date(item.warranty_date);
+                                    const now = new Date();
+                                    const isExpired = warranty < now;
+                                    const daysLeft = Math.ceil((warranty - now) / (1000 * 60 * 60 * 24));
+                                    return (
+                                      <span style={{
+                                        padding: '2px 6px',
+                                        borderRadius: '2px',
+                                        fontSize: '10px',
+                                        fontWeight: '400',
+                                        backgroundColor: isExpired ? 'var(--bg-red)' : daysLeft < 30 ? 'var(--bg-yellow)' : 'var(--bg-green)',
+                                        color: isExpired ? 'var(--text-red)' : daysLeft < 30 ? 'var(--text-yellow)' : 'var(--text-green)'
+                                      }} title={isExpired ? 'Expired' : `${daysLeft} days remaining`}>
+                                        {isExpired ? 'Expired' : daysLeft < 30 ? `⚠️ ${daysLeft}d` : 'Valid'}
+                                      </span>
+                                    );
+                                  })()}
+                                </td>
+                            <td className="px-4 py-3 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                  {item.created_at ? new Date(item.created_at).toLocaleDateString() : <span className="text-[var(--text-tertiary)]">—</span>}
+                                </td>
+                            <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                  {item.updated_at ? (
+                                    <span title={new Date(item.updated_at).toLocaleString()}>
+                                      {new Date(item.updated_at).toLocaleDateString()}
+                                    </span>
+                                  ) : (
+                                    <span className="text-[var(--text-tertiary)]">—</span>
+                                  )}
+                                </td>
+                            <td className="px-4 py-3 text-center">
+                                  <div className="flex items-center justify-center gap-1">
+                                    <button 
+                                      className="p-1 border border-[var(--border-color)] rounded text-[var(--text-tertiary)] hover:bg-[var(--bg-glass-light)] hover:border-[var(--border-glass)] hover:text-[var(--text-primary)] transition-colors"
+                                      title="View History"
+                                      onClick={() => handleViewHistory(item)}
+                                    >
+                                      <History size={12} />
+                                    </button>
+                                    <button 
+                                      className="p-1 border border-[var(--border-color)] rounded text-[var(--text-tertiary)] hover:bg-[var(--bg-blue)] hover:border-[var(--border-blue)] hover:text-[var(--text-blue)] transition-colors"
+                                      title="Edit"
+                                      onClick={() => handleEditEquipment(item)}
+                                    >
+                                      <Edit3 size={12} />
+                                    </button>
+                                    <button 
+                                      className="p-1 border border-[var(--border-color)] rounded text-[var(--text-tertiary)] hover:bg-[var(--bg-red)] hover:border-[var(--border-red)] hover:text-[var(--text-red)] transition-colors"
+                                      title="Delete"
+                                      onClick={async () => {
+                                        if(window.confirm(`Delete ${item.model}?`)) {
+                                          try {
+                                            await deleteEquipment(item.id);
+                                            setToast({ message: `${item.model} deleted successfully`, type: 'success' });
+                                          } catch (err) {
+                                            setToast({ message: 'Error deleting equipment: ' + err.message, type: 'error' });
+                                          }
+                                        }
+                                      }}
+                                    >
+                                      <Trash2 size={12} />
+                                    </button>
+                                  </div>
+                                </td>
+                          </tr>
+                        );
+                      })
+                      ) : (
+                        <tr>
+                          <td className="px-3 py-2 text-sm text-[var(--text-primary)] text-center" colSpan="15">
+                            <div className="flex flex-col items-center justify-center py-12">
+                              <div className="w-10 h-10 rounded-full bg-[var(--bg-gray)] border border-[var(--border-color)] flex items-center justify-center text-[var(--text-gray)] font-bold mb-4">
+                                !
+                              </div>
+                              <h4 className="text-sm font-semibold text-[var(--text-primary)] mb-2">No assets found</h4>
+                              <p className="text-xs text-[var(--text-tertiary)] mb-4">Try adjusting your search filters or query</p>
+                              <button
+                                className="px-3 py-1.5 bg-[var(--accent-primary)] text-white border border-[var(--accent-primary)] rounded text-xs font-medium transition-colors hover:bg-[var(--accent-hover)]"
+                                onClick={() => setSearchQuery('')}
+                              >
+                                Clear Search
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                  </div>
+                </div>
+              </Card>
+            </div>
+          </div>
+          )}
+          
+          {activePage === 'hubs' && (
+            <div className="max-w-7xl mx-auto space-y-8 animate-slide-in">
+              <h2 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Hubs Management</h2>
+              <p style={{ color: 'var(--text-secondary)' }}>Hub management page coming soon...</p>
+            </div>
+          )}
+          
+        </div>
+      </div>
+      
+      <EquipmentModal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingEquipment(null);
+        }}
+        equipment={editingEquipment}
+        onSave={handleSaveEquipment}
+      />
+      
+      <EquipmentHistoryModal
+        isOpen={historyModalOpen}
+        onClose={() => {
+          setHistoryModalOpen(false);
+          setSelectedHistoryEquipment(null);
+        }}
+        equipmentId={selectedHistoryEquipment?.id}
+        equipmentData={selectedHistoryEquipment}
+      />
+
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+export default App;
+

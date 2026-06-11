@@ -1,0 +1,208 @@
+export const laptops = [
+  {
+    id: 'LP001',
+    assetTag: 'AST-2024-001',
+    brand: 'Dell',
+    model: 'Latitude 5440',
+    serialNumber: 'DL123456789',
+    processor: 'Intel Core i7-1365U',
+    ram: '16GB',
+    storage: '512GB SSD',
+    purchaseDate: '2024-01-15',
+    warrantyExpiry: '2025-01-15',
+    status: 'active',
+    assignedTo: 'John Smith',
+    department: 'Engineering',
+    location: 'Headquarters',
+    condition: 'Good',
+    lastMaintenance: '2024-02-01',
+    cost: 1299.99
+  },
+  {
+    id: 'LP002',
+    assetTag: 'AST-2024-002',
+    brand: 'HP',
+    model: 'EliteBook 840 G10',
+    serialNumber: 'HP987654321',
+    processor: 'Intel Core i5-1345U',
+    ram: '16GB',
+    storage: '256GB SSD',
+    purchaseDate: '2024-01-20',
+    warrantyExpiry: '2025-01-20',
+    status: 'active',
+    assignedTo: 'Sarah Johnson',
+    department: 'Marketing',
+    location: 'Headquarters',
+    condition: 'Excellent',
+    lastMaintenance: '2024-02-15',
+    cost: 1099.99
+  },
+  {
+    id: 'LP003',
+    assetTag: 'AST-2024-003',
+    brand: 'Lenovo',
+    model: 'ThinkPad X1 Carbon',
+    serialNumber: 'LP456789123',
+    processor: 'Intel Core i7-1370P',
+    ram: '32GB',
+    storage: '1TB SSD',
+    purchaseDate: '2024-02-01',
+    warrantyExpiry: '2026-02-01',
+    status: 'active',
+    assignedTo: 'Michael Chen',
+    department: 'Executive',
+    location: 'Headquarters',
+    condition: 'Excellent',
+    lastMaintenance: '2024-02-20',
+    cost: 1899.99
+  },
+  {
+    id: 'LP004',
+    assetTag: 'AST-2024-004',
+    brand: 'Apple',
+    model: 'MacBook Pro 14"',
+    serialNumber: 'MB202400456',
+    processor: 'Apple M3 Pro',
+    ram: '18GB',
+    storage: '512GB SSD',
+    purchaseDate: '2024-02-10',
+    warrantyExpiry: '2025-02-10',
+    status: 'maintenance',
+    assignedTo: null,
+    department: null,
+    location: 'IT Department',
+    condition: 'Fair',
+    lastMaintenance: '2024-03-01',
+    cost: 1999.99
+  },
+  {
+    id: 'LP005',
+    assetTag: 'AST-2024-005',
+    brand: 'Dell',
+    model: 'XPS 15 9530',
+    serialNumber: 'DL789123456',
+    processor: 'Intel Core i9-13900H',
+    ram: '32GB',
+    storage: '1TB SSD',
+    purchaseDate: '2024-02-15',
+    warrantyExpiry: '2025-02-15',
+    status: 'active',
+    assignedTo: 'Emily Davis',
+    department: 'Design',
+    location: 'Creative Studio',
+    condition: 'Good',
+    lastMaintenance: '2024-02-28',
+    cost: 2499.99
+  },
+  {
+    id: 'LP006',
+    assetTag: 'AST-2024-006',
+    brand: 'HP',
+    model: 'ZBook Fury 16',
+    serialNumber: 'HP321654987',
+    processor: 'Intel Core i7-13850HX',
+    ram: '64GB',
+    storage: '2TB SSD',
+    purchaseDate: '2024-03-01',
+    warrantyExpiry: '2026-03-01',
+    status: 'available',
+    assignedTo: null,
+    department: null,
+    location: 'Warehouse',
+    condition: 'New',
+    lastMaintenance: null,
+    cost: 3299.99
+  },
+  {
+    id: 'LP007',
+    assetTag: 'AST-2023-001',
+    brand: 'Lenovo',
+    model: 'ThinkPad P1 Gen 4',
+    serialNumber: 'LP111222333',
+    processor: 'Intel Core i7-11800H',
+    ram: '32GB',
+    storage: '512GB SSD',
+    purchaseDate: '2023-06-15',
+    warrantyExpiry: '2024-06-15',
+    status: 'retired',
+    assignedTo: null,
+    department: null,
+    location: 'Disposal',
+    condition: 'Poor',
+    lastMaintenance: '2024-01-10',
+    cost: 2799.99
+  },
+  {
+    id: 'LP008',
+    assetTag: 'AST-2024-007',
+    brand: 'Dell',
+    model: 'Precision 5680',
+    serialNumber: 'DL444555666',
+    processor: 'Intel Core Ultra 7 165H',
+    ram: '32GB',
+    storage: '1TB SSD',
+    purchaseDate: '2024-03-05',
+    warrantyExpiry: '2025-03-05',
+    status: 'active',
+    assignedTo: 'Robert Wilson',
+    department: 'Engineering',
+    location: 'Headquarters',
+    condition: 'Excellent',
+    lastMaintenance: '2024-03-10',
+    cost: 2199.99
+  }
+];
+
+export const employees = [
+  { id: 'EMP001', name: 'John Smith', department: 'Engineering', email: 'john.smith@company.com', phone: '+1 555-0101' },
+  { id: 'EMP002', name: 'Sarah Johnson', department: 'Marketing', email: 'sarah.j@company.com', phone: '+1 555-0102' },
+  { id: 'EMP003', name: 'Michael Chen', department: 'Executive', email: 'm.chen@company.com', phone: '+1 555-0103' },
+  { id: 'EMP004', name: 'Emily Davis', department: 'Design', email: 'emily.d@company.com', phone: '+1 555-0104' },
+  { id: 'EMP005', name: 'Robert Wilson', department: 'Engineering', email: 'r.wilson@company.com', phone: '+1 555-0105' },
+  { id: 'EMP006', name: 'Lisa Anderson', department: 'HR', email: 'l.anderson@company.com', phone: '+1 555-0106' },
+  { id: 'EMP007', name: 'David Martinez', department: 'Finance', email: 'd.martinez@company.com', phone: '+1 555-0107' },
+  { id: 'EMP008', name: 'Jennifer Taylor', department: 'Operations', email: 'j.taylor@company.com', phone: '+1 555-0108' }
+];
+
+export const maintenanceRecords = [
+  { id: 'MNT001', laptopId: 'LP004', type: 'Screen Repair', date: '2024-03-01', technician: 'Tech Support', cost: 250, notes: 'Replaced faulty display' },
+  { id: 'MNT002', laptopId: 'LP001', type: 'Software Update', date: '2024-02-01', technician: 'IT Dept', cost: 0, notes: 'OS and driver updates' },
+  { id: 'MNT003', laptopId: 'LP002', type: 'Battery Replacement', date: '2024-02-15', technician: 'Tech Support', cost: 150, notes: 'Original battery degraded' },
+  { id: 'MNT004', laptopId: 'LP005', type: 'Keyboard Cleaning', date: '2024-02-28', technician: 'IT Dept', cost: 0, notes: 'Deep cleaning service' }
+];
+
+export const dashboardStats = {
+  totalLaptops: 156,
+  activeLaptops: 142,
+  availableAssets: 14,
+  inUseAssets: 142,
+  inMaintenance: 8,
+  retiredLaptops: 6,
+  totalValue: 245680,
+  warrantyExpiring: 12,
+  monthlyTrend: [
+    { month: 'Jan', count: 148 },
+    { month: 'Feb', count: 152 },
+    { month: 'Mar', count: 156 }
+  ],
+  distributionByBrand: [
+    { name: 'Dell', value: 45, color: '#6366f1' },
+    { name: 'HP', value: 30, color: '#10b981' },
+    { name: 'Lenovo', value: 18, color: '#f59e0b' },
+    { name: 'Apple', value: 7, color: '#ef4444' }
+  ],
+  distributionByDepartment: [
+    { department: 'Engineering', count: 45 },
+    { department: 'Marketing', count: 25 },
+    { department: 'Sales', count: 30 },
+    { department: 'HR', count: 15 },
+    { department: 'Finance', count: 20 },
+    { department: 'Design', count: 21 }
+  ]
+};
+
+export const departments = ['Engineering', 'Marketing', 'Sales', 'HR', 'Finance', 'Design', 'Operations', 'Executive', 'IT'];
+export const locations = ['Headquarters', 'Creative Studio', 'Warehouse', 'Branch Office A', 'Branch Office B', 'Remote'];
+export const conditions = ['New', 'Excellent', 'Good', 'Fair', 'Poor'];
+export const statuses = ['active', 'available', 'maintenance', 'retired'];
+export const brands = ['Dell', 'HP', 'Lenovo', 'Apple', 'ASUS', 'Acer'];
