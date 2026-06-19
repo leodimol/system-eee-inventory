@@ -20,81 +20,63 @@ export const themes = {
 };
 
 export function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState(() => {
-    return localStorage.getItem('theme') || themes.DARK;
-  });
-
-  const [systemTheme, setSystemTheme] = useState('dark');
+  // Enforce a single suggested theme (darkRed) site-wide.
+  const forcedTheme = themes.DARK_RED;
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    setSystemTheme(mediaQuery.matches ? 'dark' : 'light');
-
-    const handler = (e) => setSystemTheme(e.matches ? 'dark' : 'light');
-    mediaQuery.addEventListener('change', handler);
-    return () => mediaQuery.removeEventListener('change', handler);
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem('theme', theme);
-    
     const root = document.documentElement;
-    const effectiveTheme = theme === themes.SYSTEM ? systemTheme : theme;
 
-    // Remove all theme classes
-    root.classList.remove('dark', 'light', 'contrast', 'sepia', 'oceanBlue', 'forestGreen', 'royalPurple', 'sunsetOrange', 'pinkRose', 'cyanTeal', 'midnightBlue', 'goldAmber');
-    
-    // Add active theme class
-    if (effectiveTheme !== 'light') {
-      root.classList.add(effectiveTheme);
-    }
+    // Clear other theme classes
+    root.className = '';
+    // Apply enforced theme class
+    root.classList.add(forcedTheme);
 
-    // Apply CSS variables based on theme
-    const styles = getThemeStyles(effectiveTheme);
+    // Apply CSS variables for the forced theme
+    const styles = getThemeStyles('darkRed');
     Object.entries(styles).forEach(([key, value]) => {
       root.style.setProperty(key, value);
     });
-  }, [theme, systemTheme]);
+  }, []);
 
   const getThemeStyles = (activeTheme) => {
     const themes = {
       light: {
-        '--bg-primary': '#070a17',
-        '--bg-secondary': '#101a31',
-        '--bg-tertiary': '#0f1630',
-        '--bg-glass': 'rgba(8, 12, 28, 0.92)',
-        '--bg-glass-light': 'rgba(14, 20, 42, 0.96)',
-        '--text-primary': '#f4f7ff',
-        '--text-secondary': '#d8e1ff',
-        '--text-tertiary': '#a1add9',
-        '--border-color': 'rgba(141, 165, 255, 0.14)',
-        '--border-glass': 'rgba(141, 165, 255, 0.1)',
+        '--bg-primary': '#0b1223',
+        '--bg-secondary': '#0f1630',
+        '--bg-tertiary': '#12182e',
+        '--bg-glass': 'rgba(10, 12, 22, 0.92)',
+        '--bg-glass-light': 'rgba(18, 22, 38, 0.96)',
+        '--text-primary': '#f8f7f6',
+        '--text-secondary': '#e6e3e3',
+        '--text-tertiary': '#b8b6bb',
+        '--border-color': 'rgba(198, 40, 40, 0.10)',
+        '--border-glass': 'rgba(198, 40, 40, 0.08)',
         '--shadow-sm': '0 1px 3px rgba(0,0,0,0.18)',
         '--shadow-md': '0 4px 24px rgba(0,0,0,0.3)',
         '--shadow-lg': '0 12px 48px rgba(0,0,0,0.35)',
-        '--accent-primary': '#2f7cff',
-        '--accent-secondary': '#7a56ff',
+        '--accent-primary': '#c62828',
+        '--accent-secondary': '#8b1f1f',
         '--accent-success': '#10b981',
         '--accent-warning': '#f97316',
         '--accent-danger': '#ef4444',
         '--blur-amount': '20px'
       },
       dark: {
-        '--bg-primary': '#070a17',
-        '--bg-secondary': '#101a31',
-        '--bg-tertiary': '#111d3e',
-        '--bg-glass': 'rgba(8, 12, 28, 0.92)',
-        '--bg-glass-light': 'rgba(14, 20, 42, 0.96)',
-        '--text-primary': '#f4f7ff',
-        '--text-secondary': '#d8e1ff',
-        '--text-tertiary': '#a1add9',
-        '--border-color': 'rgba(141, 165, 255, 0.14)',
-        '--border-glass': 'rgba(141, 165, 255, 0.1)',
+        '--bg-primary': '#071023',
+        '--bg-secondary': '#081427',
+        '--bg-tertiary': '#0c1530',
+        '--bg-glass': 'rgba(6, 8, 20, 0.92)',
+        '--bg-glass-light': 'rgba(12, 18, 34, 0.96)',
+        '--text-primary': '#f8f7f6',
+        '--text-secondary': '#e6e3e3',
+        '--text-tertiary': '#b8b6bb',
+        '--border-color': 'rgba(200, 40, 40, 0.10)',
+        '--border-glass': 'rgba(200, 40, 40, 0.08)',
         '--shadow-sm': '0 1px 3px rgba(0,0,0,0.18)',
         '--shadow-md': '0 4px 24px rgba(0,0,0,0.3)',
         '--shadow-lg': '0 12px 48px rgba(0,0,0,0.35)',
-        '--accent-primary': '#2f7cff',
-        '--accent-secondary': '#7a56ff',
+        '--accent-primary': '#c62828',
+        '--accent-secondary': '#8b1f1f',
         '--accent-success': '#10b981',
         '--accent-warning': '#f97316',
         '--accent-danger': '#ef4444',
@@ -327,11 +309,12 @@ export function ThemeProvider({ children }) {
   };
 
   const value = {
-    theme,
-    setTheme,
+    // Keep a minimal API for compatibility; `setTheme` is a no-op.
+    theme: forcedTheme,
+    setTheme: () => {},
     themes,
-    systemTheme,
-    effectiveTheme: theme === themes.SYSTEM ? systemTheme : theme
+    systemTheme: 'dark',
+    effectiveTheme: forcedTheme
   };
 
   return (

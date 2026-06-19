@@ -85,7 +85,7 @@ const Maintenance = ({ searchTerm }) => {
         
         <div className="stat-card">
           <div className="stat-header">
-            <div className="stat-icon" style={{ backgroundColor: 'rgba(99, 102, 241, 0.2)', color: '#6366f1' }}>
+            <div className="stat-icon" style={{ backgroundColor: 'rgba(198, 40, 40, 0.12)', color: '#c62828' }}>
               <AlertTriangle size={24} />
             </div>
           </div>

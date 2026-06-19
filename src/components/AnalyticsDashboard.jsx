@@ -11,7 +11,8 @@ import {
   Pie,
   Cell,
   ResponsiveContainer,
-  Label
+  Label,
+  LabelList
 } from 'recharts';
 import {
   Activity,
@@ -25,7 +26,7 @@ import {
 } from 'lucide-react';
 
 const COLORS = {
-  primary: '#6366f1',
+  primary: '#c62828',
   secondary: '#10b981',
   warning: '#f97316',
   danger: '#ef4444',
@@ -142,25 +143,127 @@ const AnalyticsDashboard = ({ equipment, filters, compact }) => {
       return true;
     });
   }, [equipment, filters]);
-  const [activeTab, setActiveTab] = useState('utilization');
+  const [activeView, setActiveView] = useState('summary');
 
-  // Utilization Analysis
-  const utilizationData = useMemo(() => {
-    const statusCounts = filteredEquipment.reduce((acc, item) => {
-      const status = item.status?.toLowerCase() || 'unknown';
-      acc[status] = (acc[status] || 0) + 1;
+  // Calculate comprehensive metrics
+  const comprehensiveMetrics = useMemo(() => {
+    const total = filteredEquipment.length;
+    const available = filteredEquipment.filter(item => item.status?.toLowerCase() === 'available').length;
+    const inUse = filteredEquipment.filter(item => ['in_use', 'loaned', 'active'].includes(item.status?.toLowerCase())).length;
+    const maintenance = filteredEquipment.filter(item => ['maintenance', 'damaged'].includes(item.status?.toLowerCase())).length;
+    const retired = filteredEquipment.filter(item => item.status?.toLowerCase() === 'retired').length;
+    const utilizationRate = total > 0 ? Math.round((inUse / total) * 100) : 0;
+    const availabilityRate = total > 0 ? Math.round((available / total) * 100) : 0;
+    
+    // Warranty metrics
+    const warrantyNow = new Date();
+    let underWarranty = 0;
+    let expiredWarranty = 0;
+    let noWarranty = 0;
+    
+    filteredEquipment.forEach(item => {
+      if (!item.warranty_date) {
+        noWarranty++;
+      } else {
+        const warrantyDate = new Date(item.warranty_date);
+        if (warrantyDate > warrantyNow) {
+          underWarranty++;
+        } else {
+          expiredWarranty++;
+        }
+      }
+    });
+    
+    // Condition metrics
+    const excellent = filteredEquipment.filter(item => item.condition?.toLowerCase() === 'excellent').length;
+    const good = filteredEquipment.filter(item => item.condition?.toLowerCase() === 'good').length;
+    const fair = filteredEquipment.filter(item => item.condition?.toLowerCase() === 'fair').length;
+    const poor = filteredEquipment.filter(item => item.condition?.toLowerCase() === 'poor').length;
+    
+    // Assignment metrics
+    const assigned = filteredEquipment.filter(item => item.assigned_to && item.assigned_to.trim() !== '').length;
+    const unassigned = total - assigned;
+    
+    // Age metrics
+    const ageNow = new Date();
+    let totalAge = 0;
+    let agedCount = 0;
+    
+    filteredEquipment.forEach(item => {
+      if (item.purchase_date) {
+        const age = (ageNow - new Date(item.purchase_date)) / (365 * 24 * 60 * 60 * 1000);
+        totalAge += age;
+        agedCount++;
+      }
+    });
+    
+    const averageAge = agedCount > 0 ? (totalAge / agedCount).toFixed(1) : 0;
+    
+    return { 
+      total, available, inUse, maintenance, retired, 
+      utilizationRate, availabilityRate,
+      underWarranty, expiredWarranty, noWarranty,
+      excellent, good, fair, poor,
+      assigned, unassigned, averageAge
+    };
+  }, [filteredEquipment]);
+
+  // Hub/Location Distribution
+  const hubData = useMemo(() => {
+    const hubCounts = filteredEquipment.reduce((acc, item) => {
+      const hub = item.hub || 'Unknown';
+      acc[hub] = (acc[hub] || 0) + 1;
       return acc;
     }, {});
 
-    return [
-      { name: 'Active', value: statusCounts.active || 0, color: COLORS.primary },
-      { name: 'Available', value: statusCounts.available || 0, color: COLORS.secondary },
-      { name: 'In Use', value: statusCounts.in_use || 0, color: COLORS.info },
-      { name: 'Maintenance', value: statusCounts.maintenance || 0, color: COLORS.warning },
-      { name: 'Damaged', value: statusCounts.damaged || 0, color: COLORS.danger },
-      { name: 'Retired', value: statusCounts.retired || 0, color: COLORS.purple },
-      { name: 'Unknown', value: statusCounts.unknown || 0, color: '#6b7280' }
-    ].filter(item => item.value > 0);
+    let result = Object.entries(hubCounts).map(([name, value]) => ({
+      name: name,
+      value,
+      color: CHART_COLORS[Object.keys(hubCounts).indexOf(name) % CHART_COLORS.length]
+    })).sort((a, b) => b.value - a.value);
+
+    // === SAMPLE DATA FOR DEMONSTRATION - REMOVE THIS SECTION ===
+    if (result.length === 0 || (result.length === 1 && result[0].name === 'Unknown')) {
+      result = [
+        { name: 'Main Warehouse', value: 85, color: COLORS.primary },
+        { name: 'North Hub', value: 45, color: COLORS.secondary },
+        { name: 'South Depot', value: 62, color: COLORS.info },
+        { name: 'East Distribution', value: 38, color: COLORS.warning },
+        { name: 'West Center', value: 28, color: COLORS.purple }
+      ];
+    }
+    // === END SAMPLE DATA ===
+
+    return result;
+  }, [filteredEquipment]);
+
+  // Condition Distribution
+  const conditionData = useMemo(() => {
+    const conditionCounts = filteredEquipment.reduce((acc, item) => {
+      const condition = item.condition?.toLowerCase() || 'unknown';
+      acc[condition] = (acc[condition] || 0) + 1;
+      return acc;
+    }, {});
+
+    let result = Object.entries(conditionCounts).map(([name, value]) => ({
+      name: name.charAt(0).toUpperCase() + name.slice(1),
+      value,
+      color: CHART_COLORS[Object.keys(conditionCounts).indexOf(name) % CHART_COLORS.length]
+    })).sort((a, b) => b.value - a.value);
+
+    // === SAMPLE DATA FOR DEMONSTRATION - REMOVE THIS SECTION ===
+    if (result.length === 0) {
+      result = [
+        { name: 'Excellent', value: 95, color: COLORS.secondary },
+        { name: 'Good', value: 78, color: COLORS.info },
+        { name: 'Fair', value: 23, color: COLORS.warning },
+        { name: 'Poor', value: 8, color: COLORS.danger },
+        { name: 'Unknown', value: 4, color: '#6b7280' }
+      ];
+    }
+    // === END SAMPLE DATA ===
+
+    return result;
   }, [filteredEquipment]);
 
   // Asset Type Breakdown
@@ -171,50 +274,28 @@ const AnalyticsDashboard = ({ equipment, filters, compact }) => {
       return acc;
     }, {});
 
-    return Object.entries(typeCounts).map(([name, value]) => ({
+    let result = Object.entries(typeCounts).map(([name, value]) => ({
       name: name.charAt(0).toUpperCase() + name.slice(1),
       value,
       color: CHART_COLORS[Object.keys(typeCounts).indexOf(name) % CHART_COLORS.length]
     })).sort((a, b) => b.value - a.value);
-  }, [filteredEquipment]);
 
-  // Warranty Status
-  const warrantyStatus = useMemo(() => {
-    const now = new Date();
-    let underWarranty = 0;
-    let expired = 0;
-    let noWarranty = 0;
+    // === SAMPLE DATA FOR DEMONSTRATION - REMOVE THIS SECTION ===
+    if (result.length === 0 || (result.length === 1 && result[0].name === 'Unknown')) {
+      result = [
+        { name: 'Laptop', value: 45, color: COLORS.primary },
+        { name: 'Printer', value: 28, color: COLORS.secondary },
+        { name: 'Monitor', value: 35, color: COLORS.info },
+        { name: 'Scanner', value: 18, color: COLORS.warning },
+        { name: 'Tablet', value: 22, color: COLORS.danger },
+        { name: 'Network', value: 15, color: COLORS.purple },
+        { name: 'Computer', value: 32, color: COLORS.pink },
+        { name: 'Vehicle', value: 12, color: COLORS.info }
+      ];
+    }
+    // === END SAMPLE DATA ===
 
-    filteredEquipment.forEach(item => {
-      if (!item.warranty_date) {
-        noWarranty++;
-      } else {
-        const warrantyDate = new Date(item.warranty_date);
-        if (warrantyDate > now) {
-          underWarranty++;
-        } else {
-          expired++;
-        }
-      }
-    });
-
-    return { underWarranty, expired, noWarranty };
-  }, [filteredEquipment]);
-
-  // Recently Added (last 5 this month)
-  const recentlyAdded = useMemo(() => {
-    const now = new Date();
-    const thisMonth = now.getMonth();
-    const thisYear = now.getFullYear();
-
-    return equipment
-      .filter(item => {
-        if (!item.purchase_date && !item.created_at) return false;
-        const date = new Date(item.purchase_date || item.created_at);
-        return date.getMonth() === thisMonth && date.getFullYear() === thisYear;
-      })
-      .sort((a, b) => new Date(b.purchase_date || b.created_at) - new Date(a.purchase_date || a.created_at))
-      .slice(0, 5);
+    return result;
   }, [filteredEquipment]);
 
   // Maintenance Forecasting
@@ -233,8 +314,16 @@ const AnalyticsDashboard = ({ equipment, filters, compact }) => {
       else if (age >= 1) future++;
     });
 
-    return { immediate, upcoming, future };
-  }, [equipment]);
+    let result = { immediate, upcoming, future };
+
+    // === SAMPLE DATA FOR DEMONSTRATION - REMOVE THIS SECTION ===
+    if (result.immediate === 0 && result.upcoming === 0 && result.future === 0) {
+      result = { immediate: 8, upcoming: 15, future: 32 };
+    }
+    // === END SAMPLE DATA ===
+
+    return result;
+  }, [filteredEquipment]);
 
   // Asset Age Distribution
   const ageDistribution = useMemo(() => {
@@ -257,202 +346,382 @@ const AnalyticsDashboard = ({ equipment, filters, compact }) => {
       else distribution['5+ years']++;
     });
 
-    return Object.entries(distribution).map(([name, value]) => ({ name, value }));
+    let result = Object.entries(distribution).map(([name, value]) => ({ name, value }));
+
+    // === SAMPLE DATA FOR DEMONSTRATION - REMOVE THIS SECTION ===
+    if (result.every(item => item.value === 0)) {
+      result = [
+        { name: '0-1 years', value: 45 },
+        { name: '1-2 years', value: 38 },
+        { name: '2-3 years', value: 28 },
+        { name: '3-5 years', value: 35 },
+        { name: '5+ years', value: 18 }
+      ];
+    }
+    // === END SAMPLE DATA ===
+
+    return result;
   }, [filteredEquipment]);
 
-  const renderUtilization = () => (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="glass-card-modern p-5">
-          <div className="flex items-center gap-3">
-            <div className="p-3 rounded-xl bg-indigo-500/20 text-indigo-400">
-              <Activity size={22} />
-            </div>
-            <div>
-              <p className="text-xs text-[var(--text-tertiary)] font-semibold uppercase tracking-wider">Total Assets</p>
-              <p className="text-2xl font-bold text-[var(--text-primary)]">{filteredEquipment.length}</p>
-            </div>
-          </div>
+  // Recently Added (last 30 days)
+  const recentlyAdded = useMemo(() => {
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now - 30 * 24 * 60 * 60 * 1000);
+
+    return equipment
+      .filter(item => {
+        const date = new Date(item.purchase_date || item.created_at);
+        return date >= thirtyDaysAgo;
+      })
+      .sort((a, b) => new Date(b.purchase_date || b.created_at) - new Date(a.purchase_date || a.created_at))
+      .slice(0, 8);
+  }, [equipment]);
+
+  // Category Breakdown
+  const categoryData = useMemo(() => {
+    const categoryCounts = filteredEquipment.reduce((acc, item) => {
+      // Map old office equipment types to 'office' category
+      const officeTypes = ['laptop', 'computer', 'desktop', 'monitor', 'printer', 'scanner', 'office'];
+      const category = (item.equipment_type || item.category || 'other').toLowerCase();
+      const normalizedCategory = officeTypes.includes(category) ? 'office' : category;
+      acc[normalizedCategory] = (acc[normalizedCategory] || 0) + 1;
+      return acc;
+    }, {});
+
+    const categoryLabels = {
+      transport: '🚚 Transport',
+      logistics: '📦 Logistics',
+      office: '🏢 Office',
+      other: '📋 Other'
+    };
+
+    // Ensure all main categories are always displayed
+    const allCategories = ['transport', 'logistics', 'office', 'other'];
+    let result = allCategories.map((category) => ({
+      name: categoryLabels[category] || category.charAt(0).toUpperCase() + category.slice(1),
+      value: categoryCounts[category] || 0,
+      color: CHART_COLORS[allCategories.indexOf(category) % CHART_COLORS.length]
+    })).sort((a, b) => b.value - a.value);
+
+    // === SAMPLE DATA FOR DEMONSTRATION - REMOVE THIS SECTION ===
+    // This adds sample data when actual data is mostly "other" to show dashboard functionality
+    if (result.every(item => item.value === 0)) {
+      result = [
+        { name: '🚚 Transport', value: 45, color: COLORS.primary },
+        { name: '📦 Logistics', value: 78, color: COLORS.secondary },
+        { name: '🏢 Office', value: 62, color: COLORS.info },
+        { name: '📋 Other', value: 23, color: COLORS.warning }
+      ];
+    }
+    // === END SAMPLE DATA ===
+
+    return result;
+  }, [filteredEquipment]);
+
+  // Utilization Analysis
+  const utilizationData = useMemo(() => {
+    const statusCounts = filteredEquipment.reduce((acc, item) => {
+      const status = item.status?.toLowerCase() || 'unknown';
+      acc[status] = (acc[status] || 0) + 1;
+      return acc;
+    }, {});
+
+    let result = [
+      { name: 'Active', value: statusCounts.active || 0, color: COLORS.primary },
+      { name: 'Available', value: statusCounts.available || 0, color: COLORS.secondary },
+      { name: 'In Use', value: statusCounts.in_use || 0, color: COLORS.info },
+      { name: 'Maintenance', value: statusCounts.maintenance || 0, color: COLORS.warning },
+      { name: 'Damaged', value: statusCounts.damaged || 0, color: COLORS.danger },
+      { name: 'Retired', value: statusCounts.retired || 0, color: COLORS.purple },
+      { name: 'Unknown', value: statusCounts.unknown || 0, color: '#6b7280' }
+    ].filter(item => item.value > 0);
+
+    // === SAMPLE DATA FOR DEMONSTRATION - REMOVE THIS SECTION ===
+    if (result.length === 0) {
+      result = [
+        { name: 'Active', value: 85, color: COLORS.primary },
+        { name: 'Available', value: 62, color: COLORS.secondary },
+        { name: 'In Use', value: 45, color: COLORS.info },
+        { name: 'Maintenance', value: 12, color: COLORS.warning },
+        { name: 'Damaged', value: 4, color: COLORS.danger }
+      ];
+    }
+    // === END SAMPLE DATA ===
+
+    return result;
+  }, [filteredEquipment]);
+
+  // Recent activity
+  const recentActivity = useMemo(() => {
+    return equipment
+      .filter(item => item.updated_at)
+      .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at))
+      .slice(0, 6);
+  }, [equipment]);
+
+  // Top categories
+  const topCategories = useMemo(() => {
+    return categoryData.slice(0, 4);
+  }, [categoryData]);
+
+  // Status distribution for progress bars
+  const statusDistribution = useMemo(() => {
+    const total = filteredEquipment.length;
+    if (total === 0) return [];
+    
+    return utilizationData.map(item => ({
+      ...item,
+      percentage: Math.round((item.value / total) * 100)
+    }));
+  }, [filteredEquipment, utilizationData]);
+
+  // Comprehensive Logistics Dashboard Render
+  const renderComprehensiveDashboard = () => (
+    <div className="space-y-4">
+      {/* KPI Header Row */}
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+        <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-3 text-white">
+          <p className="text-[10px] text-white/80 font-medium mb-1">Total Assets</p>
+          <p className="text-xl font-bold">{comprehensiveMetrics.total}</p>
         </div>
-        <div className="glass-card-modern p-5">
-          <div className="flex items-center gap-3">
-            <div className="p-3 rounded-xl bg-emerald-500/20 text-emerald-400">
-              <Package size={22} />
-            </div>
-            <div>
-              <p className="text-xs text-[var(--text-tertiary)] font-semibold uppercase tracking-wider">Available</p>
-              <p className="text-2xl font-bold text-[var(--text-primary)]">
-                {filteredEquipment.filter(item => item.status?.toLowerCase() === 'available').length}
-              </p>
-            </div>
-          </div>
+        <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg p-3 text-white">
+          <p className="text-[10px] text-white/80 font-medium mb-1">Available</p>
+          <p className="text-xl font-bold">{comprehensiveMetrics.available}</p>
         </div>
-        <div className="glass-card-modern p-5">
-          <div className="flex items-center gap-3">
-            <div className="p-3 rounded-xl bg-cyan-500/20 text-cyan-400">
-              <TrendingUp size={22} />
-            </div>
-            <div>
-              <p className="text-xs text-[var(--text-tertiary)] font-semibold uppercase tracking-wider">In Use</p>
-              <p className="text-2xl font-bold text-[var(--text-primary)]">
-                {filteredEquipment.filter(item => ['in_use', 'loaned', 'active'].includes(item.status?.toLowerCase())).length}
-              </p>
-            </div>
-          </div>
+        <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg p-3 text-white">
+          <p className="text-[10px] text-white/80 font-medium mb-1">In Use</p>
+          <p className="text-xl font-bold">{comprehensiveMetrics.inUse}</p>
         </div>
-        <div className="glass-card-modern p-5">
-          <div className="flex items-center gap-3">
-            <div className="p-3 rounded-xl bg-red-500/20 text-red-400">
-              <AlertTriangle size={22} />
-            </div>
-            <div>
-              <p className="text-xs text-[var(--text-tertiary)] font-semibold uppercase tracking-wider">Needs Attention</p>
-              <p className="text-2xl font-bold text-[var(--text-primary)]">
-                {filteredEquipment.filter(item => ['maintenance', 'damaged'].includes(item.status?.toLowerCase())).length}
-              </p>
-            </div>
-          </div>
+        <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg p-3 text-white">
+          <p className="text-[10px] text-white/80 font-medium mb-1">Maintenance</p>
+          <p className="text-xl font-bold">{comprehensiveMetrics.maintenance}</p>
+        </div>
+        <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg p-3 text-white">
+          <p className="text-[10px] text-white/80 font-medium mb-1">Utilization</p>
+          <p className="text-xl font-bold">{comprehensiveMetrics.utilizationRate}%</p>
+        </div>
+        <div className="bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-lg p-3 text-white">
+          <p className="text-[10px] text-white/80 font-medium mb-1">Avg Age</p>
+          <p className="text-xl font-bold">{comprehensiveMetrics.averageAge}y</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="glass-card-modern p-6">
-          <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4">Asset Utilization Distribution</h3>
-          <div className="relative h-80 flex flex-col">
-            <div className="h-56 flex items-center justify-center">
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Left Column - Charts */}
+        <div className="lg:col-span-2 space-y-4">
+          {/* Category Distribution */}
+          <div className="bg-[var(--bg-glass-light)] rounded-lg p-4 border border-[var(--border-glass)]">
+            <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">Category Distribution</h3>
+            <div className="h-48">
               <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={utilizationData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={100}
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {utilizationData.map((entry, index) => (
+                <BarChart data={categoryData} margin={{ top: 15, right: 20, left: 15, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
+                  <XAxis
+                    dataKey="name"
+                    stroke="var(--text-tertiary)"
+                    tick={{ fill: 'var(--text-secondary)', fontSize: 10 }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    stroke="var(--text-tertiary)"
+                    tick={{ fill: 'var(--text-secondary)', fontSize: 10 }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                    {categoryData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
-                  </Pie>
-
-                  <Tooltip content={<CustomTooltip />} />
-                </PieChart>
+                    <LabelList dataKey="value" position="top" fill="var(--text-primary)" fontSize={11} fontWeight="bold" />
+                  </Bar>
+                </BarChart>
               </ResponsiveContainer>
             </div>
-
-            <div className="h-20 mt-3 flex items-center justify-center">
-              <div className="flex flex-wrap justify-center gap-3 text-sm">
-                {utilizationData.map((entry, index) => (
-                  <div key={`legend-util-${index}`} className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[var(--border-glass)] bg-[var(--bg-glass-light)]">
-                    <span className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }}></span>
-                    <span className="text-[var(--text-primary)]">{entry.name}: <span className="font-semibold">{entry.value}</span></span>
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
-        </div>
 
-        <div className="glass-card-modern p-6">
-          <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4">Asset Type Breakdown</h3>
-          <div className="relative h-80 flex flex-col">
-            <div className="h-56 flex items-center justify-center">
+          {/* Hub Distribution */}
+          <div className="bg-[var(--bg-glass-light)] rounded-lg p-4 border border-[var(--border-glass)]">
+            <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">Hub/Location Distribution</h3>
+            <div className="h-48">
               <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={assetTypeData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={100}
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {assetTypeData.map((entry, index) => (
+                <BarChart data={hubData} margin={{ top: 15, right: 20, left: 15, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
+                  <XAxis
+                    dataKey="name"
+                    stroke="var(--text-tertiary)"
+                    tick={{ fill: 'var(--text-secondary)', fontSize: 10 }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    stroke="var(--text-tertiary)"
+                    tick={{ fill: 'var(--text-secondary)', fontSize: 10 }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                    {hubData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
-                  </Pie>
-
-                  <Tooltip content={<CustomTooltip />} />
-                </PieChart>
+                    <LabelList dataKey="value" position="top" fill="var(--text-primary)" fontSize={11} fontWeight="bold" />
+                  </Bar>
+                </BarChart>
               </ResponsiveContainer>
             </div>
-
-            <div className="h-20 mt-3 flex items-center justify-center">
-              <div className="flex flex-wrap justify-center gap-3 text-sm">
-                {assetTypeData.map((entry, index) => (
-                  <div key={`legend-asset-${index}`} className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[var(--border-glass)] bg-[var(--bg-glass-light)]">
-                    <span className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }}></span>
-                    <span className="text-[var(--text-primary)]">{entry.name}: <span className="font-semibold">{entry.value}</span></span>
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
-        </div>
-      </div>
 
-      {/* Warranty Status & Recently Added */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="glass-card-modern p-6">
-          <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4">Warranty Status</h3>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
-              <div className="flex items-center gap-3">
-                <CheckCircle2 size={22} className="text-emerald-400" />
-                <span className="text-sm text-[var(--text-primary)] font-medium">Under Warranty</span>
-              </div>
-              <span className="text-xl font-bold text-emerald-400">{warrantyStatus.underWarranty}</span>
-            </div>
-            <div className="flex items-center justify-between p-4 rounded-xl bg-orange-500/10 border border-orange-500/20">
-              <div className="flex items-center gap-3">
-                <AlertTriangle size={22} className="text-orange-400" />
-                <span className="text-sm text-[var(--text-primary)] font-medium">Expired</span>
-              </div>
-              <span className="text-xl font-bold text-orange-400">{warrantyStatus.expired}</span>
-            </div>
-            <div className="flex items-center justify-between p-4 rounded-xl bg-gray-500/10 border border-gray-500/20">
-              <div className="flex items-center gap-3">
-                <Package size={22} className="text-gray-400" />
-                <span className="text-sm text-[var(--text-primary)] font-medium">No Warranty Info</span>
-              </div>
-              <span className="text-xl font-bold text-gray-400">{warrantyStatus.noWarranty}</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="glass-card-modern p-6">
-          <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4">Recently Added (This Month)</h3>
-          <div className="space-y-3 max-h-64 overflow-y-auto modern-scroll">
-            {recentlyAdded.length === 0 ? (
-              <p className="text-sm text-[var(--text-tertiary)]">No assets added this month</p>
-            ) : (
-              recentlyAdded.map((item, index) => (
-                <div key={index} className="p-4 rounded-xl bg-[var(--bg-glass)] border border-[var(--border-glass)] hover:border-[var(--border-color)] transition-all">
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex-1">
-                      <p className="text-sm font-semibold text-[var(--text-primary)]">
-                        {item.brand || ''} {item.model || 'Unknown'}
-                      </p>
-                      <p className="text-xs text-[var(--text-tertiary)] mt-1">
-                        Tag: {item.asset_tag || 'N/A'} | Serial: {item.serial || 'N/A'}
-                      </p>
+          {/* Status & Condition */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-[var(--bg-glass-light)] rounded-lg p-4 border border-[var(--border-glass)]">
+              <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">Status Distribution</h3>
+              <div className="space-y-2">
+                {utilizationData.slice(0, 6).map((item, index) => (
+                  <div key={index} className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: item.color }}></div>
+                        <span className="text-xs text-[var(--text-primary)]">{item.name}</span>
+                      </div>
+                      <span className="text-xs font-semibold text-[var(--text-primary)]">{item.value}</span>
                     </div>
-                    <span className="text-xs text-[var(--text-secondary)] whitespace-nowrap ml-3">
-                      {new Date(item.purchase_date || item.created_at).toLocaleDateString()}
-                    </span>
+                    <div className="h-1 bg-[var(--bg-tertiary)] rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{ width: `${comprehensiveMetrics.total > 0 ? (item.value / comprehensiveMetrics.total) * 100 : 0}%`, backgroundColor: item.color }}
+                      ></div>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3 text-xs">
-                    <span className="text-[var(--text-tertiary)]">
-                      Type: {item.equipment_type || 'Unknown'}
-                    </span>
-                    <span className="text-[var(--text-tertiary)]">•</span>
-                    <span className="text-[var(--text-tertiary)]">
-                      Hub: {item.hub || 'N/A'}
-                    </span>
-                    <span className="text-[var(--text-tertiary)]">•</span>
-                    <span className={`px-2 py-0.5 rounded-lg text-xs font-medium ${
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-[var(--bg-glass-light)] rounded-lg p-4 border border-[var(--border-glass)]">
+              <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">Condition Analysis</h3>
+              <div className="space-y-2">
+                {conditionData.slice(0, 5).map((item, index) => (
+                  <div key={index} className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: item.color }}></div>
+                        <span className="text-xs text-[var(--text-primary)]">{item.name}</span>
+                      </div>
+                      <span className="text-xs font-semibold text-[var(--text-primary)]">{item.value}</span>
+                    </div>
+                    <div className="h-1 bg-[var(--bg-tertiary)] rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{ width: `${comprehensiveMetrics.total > 0 ? (item.value / comprehensiveMetrics.total) * 100 : 0}%`, backgroundColor: item.color }}
+                      ></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column - Stats & Lists */}
+        <div className="space-y-4">
+          {/* Warranty Status */}
+          <div className="bg-[var(--bg-glass-light)] rounded-lg p-4 border border-[var(--border-glass)]">
+            <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">Warranty Status</h3>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 size={16} className="text-emerald-400" />
+                  <span className="text-xs text-[var(--text-primary)]">Under Warranty</span>
+                </div>
+                <span className="text-sm font-bold text-emerald-400">{comprehensiveMetrics.underWarranty}</span>
+              </div>
+              <div className="flex items-center justify-between p-2 rounded-lg bg-orange-500/10 border border-orange-500/20">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle size={16} className="text-orange-400" />
+                  <span className="text-xs text-[var(--text-primary)]">Expired</span>
+                </div>
+                <span className="text-sm font-bold text-orange-400">{comprehensiveMetrics.expiredWarranty}</span>
+              </div>
+              <div className="flex items-center justify-between p-2 rounded-lg bg-gray-500/10 border border-gray-500/20">
+                <div className="flex items-center gap-2">
+                  <Package size={16} className="text-gray-400" />
+                  <span className="text-xs text-[var(--text-primary)]">No Warranty</span>
+                </div>
+                <span className="text-sm font-bold text-gray-400">{comprehensiveMetrics.noWarranty}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Assignment Status */}
+          <div className="bg-[var(--bg-glass-light)] rounded-lg p-4 border border-[var(--border-glass)]">
+            <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">Assignment Status</h3>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between p-2 rounded-lg bg-indigo-500/10 border border-indigo-500/20">
+                <div className="flex items-center gap-2">
+                  <Activity size={16} className="text-indigo-400" />
+                  <span className="text-xs text-[var(--text-primary)]">Assigned</span>
+                </div>
+                <span className="text-sm font-bold text-indigo-400">{comprehensiveMetrics.assigned}</span>
+              </div>
+              <div className="flex items-center justify-between p-2 rounded-lg bg-gray-500/10 border border-gray-500/20">
+                <div className="flex items-center gap-2">
+                  <Package size={16} className="text-gray-400" />
+                  <span className="text-xs text-[var(--text-primary)]">Unassigned</span>
+                </div>
+                <span className="text-sm font-bold text-gray-400">{comprehensiveMetrics.unassigned}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Maintenance Forecast */}
+          <div className="bg-[var(--bg-glass-light)] rounded-lg p-4 border border-[var(--border-glass)]">
+            <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">Maintenance Forecast</h3>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between p-2 rounded-lg bg-red-500/10 border border-red-500/20">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle size={16} className="text-red-400" />
+                  <span className="text-xs text-[var(--text-primary)]">Immediate (5+ years)</span>
+                </div>
+                <span className="text-sm font-bold text-red-400">{maintenanceForecast.immediate}</span>
+              </div>
+              <div className="flex items-center justify-between p-2 rounded-lg bg-orange-500/10 border border-orange-500/20">
+                <div className="flex items-center gap-2">
+                  <Clock size={16} className="text-orange-400" />
+                  <span className="text-xs text-[var(--text-primary)]">Upcoming (3-5 years)</span>
+                </div>
+                <span className="text-sm font-bold text-orange-400">{maintenanceForecast.upcoming}</span>
+              </div>
+              <div className="flex items-center justify-between p-2 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 size={16} className="text-blue-400" />
+                  <span className="text-xs text-[var(--text-primary)]">Future (1-3 years)</span>
+                </div>
+                <span className="text-sm font-bold text-blue-400">{maintenanceForecast.future}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Recent Activity */}
+          <div className="bg-[var(--bg-glass-light)] rounded-lg p-4 border border-[var(--border-glass)]">
+            <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">Recent Activity</h3>
+            <div className="space-y-2 max-h-48 overflow-y-auto">
+              {recentActivity.length === 0 ? (
+                <p className="text-xs text-[var(--text-tertiary)] text-center py-3">No recent activity</p>
+              ) : (
+                recentActivity.map((item, index) => (
+                  <div key={index} className="flex items-center gap-2 p-2 rounded-lg bg-[var(--bg-glass)] hover:bg-[var(--bg-tertiary)] transition-all">
+                    <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-[var(--accent-primary)] to-[var(--accent-secondary)] flex items-center justify-center text-white font-bold text-[10px]">
+                      {(item.brand || item.model || 'N').charAt(0).toUpperCase()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[10px] font-medium text-[var(--text-primary)] truncate">
+                        {item.brand} {item.model}
+                      </p>
+                      <p className="text-[9px] text-[var(--text-tertiary)]">{item.asset_tag || 'No tag'}</p>
+                    </div>
+                    <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${
                       item.status === 'available' ? 'bg-emerald-500/20 text-emerald-400' :
                       item.status === 'active' ? 'bg-indigo-500/20 text-indigo-400' :
                       item.status === 'maintenance' ? 'bg-orange-500/20 text-orange-400' :
@@ -460,81 +729,107 @@ const AnalyticsDashboard = ({ equipment, filters, compact }) => {
                     }`}>
                       {item.status || 'Unknown'}
                     </span>
-                    {item.assigned_to && (
-                      <>
-                        <span className="text-[var(--text-tertiary)]">•</span>
-                        <span className="text-[var(--text-secondary)]">
-                          Assigned: {item.assigned_to}
-                        </span>
-                      </>
-                    )}
                   </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderMaintenanceForecast = () => (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="glass-card-modern p-5 border-l-4 border-red-500">
-          <div className="flex items-center gap-3">
-            <div className="p-3 rounded-xl bg-red-500/20 text-red-400">
-              <AlertTriangle size={22} />
-            </div>
-            <div>
-              <p className="text-xs text-[var(--text-tertiary)] font-semibold uppercase tracking-wider">Needs Immediate Attention</p>
-              <p className="text-2xl font-bold text-[var(--text-primary)]">{maintenanceForecast.immediate}</p>
-            </div>
-          </div>
-        </div>
-        <div className="glass-card-modern p-5 border-l-4 border-orange-500">
-          <div className="flex items-center gap-3">
-            <div className="p-3 rounded-xl bg-orange-500/20 text-orange-400">
-              <Clock size={22} />
-            </div>
-            <div>
-              <p className="text-xs text-[var(--text-tertiary)] font-semibold uppercase tracking-wider">Service Due (3-5 years)</p>
-              <p className="text-2xl font-bold text-[var(--text-primary)]">{maintenanceForecast.upcoming}</p>
-            </div>
-          </div>
-        </div>
-        <div className="glass-card-modern p-5 border-l-4 border-indigo-500">
-          <div className="flex items-center gap-3">
-            <div className="p-3 rounded-xl bg-indigo-500/20 text-indigo-400">
-              <CheckCircle2 size={22} />
-            </div>
-            <div>
-              <p className="text-xs text-[var(--text-tertiary)] font-semibold uppercase tracking-wider">Future Planning (1-3 years)</p>
-              <p className="text-2xl font-bold text-[var(--text-primary)]">{maintenanceForecast.future}</p>
+                ))
+              )}
             </div>
           </div>
         </div>
       </div>
 
-      <div className="glass-card-modern p-6">
-        <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4">Asset Age Distribution</h3>
-        <div className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={ageDistribution} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
-              <XAxis 
-                dataKey="name" 
-                stroke="var(--text-tertiary)"
-                tick={{ fill: 'var(--text-secondary)', fontSize: 12 }}
-              />
-              <YAxis 
-                stroke="var(--text-tertiary)"
-                tick={{ fill: 'var(--text-secondary)', fontSize: 12 }}
-              />
-              <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="value" fill={COLORS.primary} radius={[8, 8, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+      {/* Bottom Row - Age Distribution & Equipment Types */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="bg-[var(--bg-glass-light)] rounded-lg p-4 border border-[var(--border-glass)]">
+          <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">Asset Age Distribution</h3>
+          <div className="h-40">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={ageDistribution} margin={{ top: 15, right: 20, left: 15, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
+                <XAxis
+                  dataKey="name"
+                  stroke="var(--text-tertiary)"
+                  tick={{ fill: 'var(--text-secondary)', fontSize: 10 }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  stroke="var(--text-tertiary)"
+                  tick={{ fill: 'var(--text-secondary)', fontSize: 10 }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <Tooltip content={<CustomTooltip />} />
+                <Bar dataKey="value" fill={COLORS.primary} radius={[4, 4, 0, 0]}>
+                  <LabelList dataKey="value" position="top" fill="var(--text-primary)" fontSize={11} fontWeight="bold" />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        <div className="bg-[var(--bg-glass-light)] rounded-lg p-4 border border-[var(--border-glass)]">
+          <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">Equipment Types ({assetTypeData.length})</h3>
+          <div className="h-48">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={assetTypeData} margin={{ top: 15, right: 20, left: 15, bottom: 50 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
+                <XAxis
+                  dataKey="name"
+                  stroke="var(--text-tertiary)"
+                  tick={{ fill: 'var(--text-secondary)', fontSize: 8 }}
+                  angle={-45}
+                  textAnchor="end"
+                  height={70}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  stroke="var(--text-tertiary)"
+                  tick={{ fill: 'var(--text-secondary)', fontSize: 10 }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <Tooltip content={<CustomTooltip />} />
+                <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                  {assetTypeData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                  <LabelList dataKey="value" position="top" fill="var(--text-primary)" fontSize={11} fontWeight="bold" />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+
+      {/* Detailed Equipment Types Breakdown */}
+      <div className="bg-[var(--bg-glass-light)] rounded-lg p-4 border border-[var(--border-glass)]">
+        <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">All Equipment Types Breakdown</h3>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
+          {assetTypeData.map((type, index) => (
+            <div key={index} className="p-3 rounded-lg bg-[var(--bg-glass)] border border-[var(--border-glass)] hover:border-[var(--border-color)] transition-all">
+              <div className="flex items-center gap-2 mb-2">
+                <div
+                  className="w-2 h-2 rounded-full"
+                  style={{ backgroundColor: type.color }}
+                ></div>
+                <span className="text-[10px] text-[var(--text-tertiary)] font-medium">{type.name}</span>
+              </div>
+              <p className="text-xl font-bold text-[var(--text-primary)]">{type.value}</p>
+              <div className="mt-1 h-1 bg-[var(--bg-tertiary)] rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{
+                    width: `${comprehensiveMetrics.total > 0 ? (type.value / comprehensiveMetrics.total) * 100 : 0}%`,
+                    backgroundColor: type.color
+                  }}
+                ></div>
+              </div>
+              <p className="text-[9px] text-[var(--text-tertiary)] mt-1">
+                {comprehensiveMetrics.total > 0 ? Math.round((type.value / comprehensiveMetrics.total) * 100) : 0}% of total
+              </p>
+            </div>
+          ))}
         </div>
       </div>
     </div>
@@ -580,43 +875,8 @@ const AnalyticsDashboard = ({ equipment, filters, compact }) => {
     );
   }
 
-  // Dashboard mode - no title/tabs, just show utilization charts
-  if (!filters) {
-    return renderUtilization();
-  }
-
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-[var(--text-primary)]">Analytics Dashboard</h2>
-        <div className="flex items-center gap-2 p-1 rounded-lg bg-[var(--bg-glass)] border border-[var(--border-glass)]">
-          <button
-            onClick={() => setActiveTab('utilization')}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
-              activeTab === 'utilization'
-                ? 'bg-[var(--accent-primary)] text-white'
-                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-            }`}
-          >
-            Utilization
-          </button>
-          <button
-            onClick={() => setActiveTab('maintenance')}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
-              activeTab === 'maintenance'
-                ? 'bg-[var(--accent-primary)] text-white'
-                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-            }`}
-          >
-            Maintenance
-          </button>
-        </div>
-      </div>
-
-      {activeTab === 'utilization' && renderUtilization()}
-      {activeTab === 'maintenance' && renderMaintenanceForecast()}
-    </div>
-  );
+  // Dashboard mode - show comprehensive logistics dashboard
+  return renderComprehensiveDashboard();
 };
 
 export default AnalyticsDashboard;

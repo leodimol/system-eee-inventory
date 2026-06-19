@@ -117,8 +117,8 @@ const Reports = () => {
             className="report-card"
             onClick={() => setSelectedReport(report.id)}
             style={{ 
-              borderColor: selectedReport === report.id ? '#6366f1' : '#2a2a4a',
-              backgroundColor: selectedReport === report.id ? 'rgba(99, 102, 241, 0.1)' : '#1a1a2e'
+              borderColor: selectedReport === report.id ? '#c62828' : '#2a2a4a',
+              backgroundColor: selectedReport === report.id ? 'rgba(198, 40, 40, 0.08)' : '#1a1a2e'
             }}
           >
             <div className={`report-icon ${report.color}`}>
@@ -227,10 +227,10 @@ const Reports = () => {
               <Tooltip 
                 contentStyle={{ 
                   backgroundColor: 'rgba(26, 26, 46, 0.95)', 
-                  border: '1px solid rgba(99, 102, 241, 0.3)',
+                  border: '1px solid rgba(198, 40, 40, 0.18)',
                   borderRadius: '12px',
                   color: '#FFFFFF',
-                  boxShadow: '0 8px 32px rgba(99, 102, 241, 0.2)',
+                  boxShadow: '0 8px 32px rgba(198, 40, 40, 0.12)',
                   backdropFilter: 'blur(12px)',
                   padding: '12px 16px'
                 }}
@@ -247,7 +247,7 @@ const Reports = () => {
                   letterSpacing: '0.5px'
                 }}
               />
-              <Bar dataKey="count" fill="#6366f1" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="count" fill="#c62828" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -257,7 +257,7 @@ const Reports = () => {
         <div className="stats-grid" style={{ marginBottom: '30px' }}>
           <div className="stat-card">
             <div className="stat-header">
-              <div className="stat-icon" style={{ backgroundColor: 'rgba(99, 102, 241, 0.2)', color: '#6366f1' }}>
+              <div className="stat-icon" style={{ backgroundColor: 'rgba(198, 40, 40, 0.12)', color: '#c62828' }}>
                 <DollarSign size={24} />
               </div>
             </div>

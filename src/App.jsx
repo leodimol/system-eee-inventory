@@ -51,7 +51,8 @@ import {
   Waves,
   Star,
   Gem,
-  LogOut
+  LogOut,
+  Package
 } from 'lucide-react';
 import LoadingScreen from './components/LoadingScreen';
 import { 
@@ -75,8 +76,8 @@ import {
   Legend
 } from 'recharts';
 import { Button, Card, Input, Modal } from './components/ui/Base';
-import EquipmentModal from './components/EquipmentModal';
-import EquipmentHistoryModal from './components/EquipmentHistoryModal';
+import EquipmentModal from './components/AddAssetModal';
+import EquipmentHistoryModal from './components/AssetHistoryModal';
 import { useEquipment, useEquipmentStats, useHubs } from './hooks/useData';
 import { useTheme, themes } from './context/ThemeContext';
 import * as XLSX from 'xlsx';
@@ -88,11 +89,10 @@ import Toast from './components/ui/Toast';
 const Sidebar = ({ activePage, setActivePage, inventoryCount, hubsCount, effectiveTheme, isCollapsed, onToggle, onLogout }) => {
   const [showTooltip, setShowTooltip] = useState(false);
   const [hoveredItem, setHoveredItem] = useState(null);
-  const [imgErrorSidebar, setImgErrorSidebar] = useState(false);
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={20} /> },
-    { id: 'inventory', label: 'Equipment', icon: <Laptop size={20} />, badge: inventoryCount },
+    { id: 'inventory', label: 'Asset', icon: <Package size={20} />, badge: inventoryCount },
   ];
 
   const adminItems = [
@@ -105,23 +105,12 @@ const Sidebar = ({ activePage, setActivePage, inventoryCount, hubsCount, effecti
       style={{ background: 'var(--bg-glass)' }}
     >
       <div className="p-4 border-b border-[var(--border-glass)] flex items-center gap-3">
-        <div 
-          className="w-12 h-12 rounded-[14px] flex items-center justify-center pulse-glow flex-shrink-0"
-          style={{ 
-            background: '#ffffff',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)'
-          }}
-        >
-          {!imgErrorSidebar ? (
-            <img
-              src="/logo.png.png"
-              alt="Logo"
-              onError={() => setImgErrorSidebar(true)}
-              style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 14, backgroundColor: 'white', padding: 0 }}
-            />
-          ) : (
-            <Laptop size={24} strokeWidth={2.5} />
-          )}
+        <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
+          <img
+            src="/sidebar.logo.png"
+            alt="Logo"
+            className="w-12 h-12 object-contain"
+          />
         </div>
         {!isCollapsed && (
           <div className="flex-1">
@@ -315,6 +304,7 @@ const Sidebar = ({ activePage, setActivePage, inventoryCount, hubsCount, effecti
 function App() {
   const [activePage, setActivePage] = useState('dashboard');
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [selectedHub, setSelectedHub] = useState('all');
   const [toast, setToast] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -338,7 +328,9 @@ function App() {
   const [filters, setFilters] = useState({
     condition: '',
     status: '',
-    hub: ''
+    hub: '',
+    category: '',
+    subCategory: ''
   });
   const [isFullView, setIsFullView] = useState(false);
 
@@ -354,6 +346,24 @@ function App() {
   // Loading state
   const [isLoading, setIsLoading] = useState(true);
   const [pageLoading, setPageLoading] = useState(false);
+
+  // Preload logo image immediately to prevent delay
+  useEffect(() => {
+    // Create preload link
+    const link = document.createElement('link');
+    link.rel = 'preload';
+    link.as = 'image';
+    link.href = '/logo.png.png';
+    document.head.appendChild(link);
+
+    // Also preload via Image object
+    const img = new Image();
+    img.src = '/logo.png.png';
+
+    return () => {
+      document.head.removeChild(link);
+    };
+  }, []);
 
   // Refs for synchronized scrolling
   const headerScrollRef = useRef(null);
@@ -466,23 +476,58 @@ function App() {
 
   const { hubs, loading: hubsLoading } = useHubs();
   const { stats, loading: statsLoading } = useEquipmentStats(selectedHub);
-  const { 
-    equipment, 
-    loading: equipLoading, 
-    addEquipment, 
-    updateEquipment, 
-    deleteEquipment, 
+  const {
+    equipment: allEquipment,
+    loading: equipLoading,
+    error: equipError,
+    addEquipment,
+    updateEquipment,
+    deleteEquipment,
     refresh,
     totalCount,
     totalPages,
     itemsPerPage
-  } = useEquipment(selectedHub, currentPage, filters, searchQuery);
+  } = useEquipment(selectedHub, currentPage, filters, debouncedSearchQuery, false);
   const { theme, setTheme, themes, effectiveTheme } = useTheme();
+
+  // Client-side filtering (only for additional filtering not handled by server)
+  const equipment = useMemo(() => {
+    return allEquipment.filter(item => {
+      // Map old office equipment types to 'office' category
+      const officeTypes = ['laptop', 'computer', 'desktop', 'monitor', 'printer', 'scanner', 'office'];
+      const itemCategory = (item.equipment_type || item.category || item.type || '').toLowerCase();
+      const matchesCategory = !filters.category ||
+        itemCategory === filters.category.toLowerCase() ||
+        (filters.category === 'office' && officeTypes.includes(itemCategory));
+      const matchesSubCategory = !filters.subCategory ||
+        (filters.category === 'logistics' && item.logistics_type === filters.subCategory) ||
+        (filters.category === 'office' && item.office_type === filters.subCategory);
+      const matchesStatus = !filters.status || item.status === filters.status;
+      const matchesCondition = !filters.condition || item.condition === filters.condition;
+      const matchesSearch = !searchQuery ||
+        (item.brand && item.brand.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (item.model && item.model.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (item.asset_tag && item.asset_tag.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (item.serial && item.serial.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (item.assigned_to && item.assigned_to.toLowerCase().includes(searchQuery.toLowerCase()));
+
+      return matchesCategory && matchesSubCategory && matchesStatus && matchesCondition && matchesSearch;
+    });
+  }, [allEquipment, filters, searchQuery]);
+
+  // Debounce search query to reduce API calls
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300); // 300ms debounce delay
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   // Reset to page 1 when filters, search, or hub changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, filters, selectedHub]);
+  }, [debouncedSearchQuery, filters, selectedHub]);
 
   // Manage loading state based on data fetching
   useEffect(() => {
@@ -1018,12 +1063,77 @@ function App() {
     return <LoadingScreen message={loadingMessage} />;
   }
 
-  // Show page-specific loading screen
-  if (pageLoading) {
-    const loadingMessage = activePage === 'inventory' 
-      ? 'Loading Equipment Inventory...' 
-      : 'Loading Dashboard Analytics...';
-    return <LoadingScreen message={loadingMessage} />;
+  // Show error screen if there's an equipment error
+  if (equipError && activePage === 'inventory') {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        minHeight: '100vh',
+        padding: '20px',
+        background: 'var(--bg-primary)'
+      }}>
+        <div style={{ 
+          maxWidth: '500px', 
+          textAlign: 'center',
+          padding: '40px',
+          borderRadius: '16px',
+          background: 'var(--bg-secondary)',
+          border: '1px solid var(--border-color)'
+        }}>
+          <div style={{ 
+            width: '64px', 
+            height: '64px', 
+            borderRadius: '50%', 
+            backgroundColor: 'var(--bg-glass-light)', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            margin: '0 auto 20px',
+            border: '1px solid var(--border-glass)'
+          }}>
+            <span style={{ fontSize: '32px', color: 'var(--text-secondary)' }}>⚠️</span>
+          </div>
+          <h2 style={{ 
+            color: 'var(--text-primary)', 
+            fontSize: '20px', 
+            fontWeight: '600', 
+            marginBottom: '12px' 
+          }}>
+            Connection Error
+          </h2>
+          <p style={{ 
+            color: 'var(--text-secondary)', 
+            fontSize: '14px', 
+            marginBottom: '24px',
+            lineHeight: '1.6'
+          }}>
+            {equipError}
+          </p>
+          <button 
+            onClick={refresh}
+            style={{
+              padding: '12px 24px',
+              borderRadius: '8px',
+              border: 'none',
+              backgroundColor: 'var(--accent-primary)',
+              color: 'white',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: '600',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}
+          >
+            <RefreshCw size={16} />
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -1219,39 +1329,14 @@ function App() {
                   <Palette size={20} style={{ color: 'var(--accent-purple)' }} />
                   Appearance
                 </h4>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                  {[
-                    { id: themes.LIGHT, label: 'Light', icon: Sun },
-                    { id: themes.DARK, label: 'Dark', icon: Moon },
-                    { id: themes.SYSTEM, label: 'System', icon: Monitor },
-                    { id: themes.CONTRAST, label: 'High Contrast', icon: Eye },
-                    { id: themes.SEPIA, label: 'Sepia', icon: Palette },
-                    { id: themes.DARK_RED, label: 'Dark Red', icon: Database },
-                    { id: themes.OCEAN_BLUE, label: 'Ocean Blue', icon: Droplets },
-                    { id: themes.FOREST_GREEN, label: 'Forest Green', icon: Leaf },
-                    { id: themes.ROYAL_PURPLE, label: 'Royal Purple', icon: Sparkles },
-                    { id: themes.SUNSET_ORANGE, label: 'Sunset Orange', icon: Flame },
-                    { id: themes.PINK_ROSE, label: 'Pink Rose', icon: Heart },
-                    { id: themes.CYAN_TEAL, label: 'Cyan Teal', icon: Waves },
-                    { id: themes.MIDNIGHT_BLUE, label: 'Midnight Blue', icon: Star },
-                    { id: themes.GOLD_AMBER, label: 'Gold Amber', icon: Gem },
-                  ].map((t) => (
-                    <button
-                      key={t.id}
-                      onClick={() => setTheme(t.id)}
-                      className={`p-4 rounded-[16px] flex flex-col items-center gap-2 transition-all ${
-                        theme === t.id ? 'ring-2' : ''
-                      }`}
-                      style={{
-                        background: theme === t.id ? 'var(--bg-glass-light)' : 'transparent',
-                        border: `1px solid ${theme === t.id ? 'var(--accent-primary)' : 'var(--border-glass)'}`,
-                        ringColor: 'var(--accent-primary)'
-                      }}
-                    >
-                      <t.icon size={24} style={{ color: theme === t.id ? 'var(--accent-primary)' : 'var(--text-secondary)' }} />
-                      <span className="text-xs font-medium">{t.label}</span>
-                    </button>
-                  ))}
+                <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-1 gap-3">
+                  <div className="p-4 rounded-[16px] flex items-center gap-4 bg-[var(--bg-glass-light)] border" style={{ borderColor: 'var(--accent-primary)' }}>
+                    <Database size={24} style={{ color: 'var(--accent-primary)' }} />
+                    <div>
+                      <div className="text-sm font-semibold">Dark Red (Applied)</div>
+                      <div className="text-xs" style={{ color: 'var(--text-tertiary)' }}>The application uses the suggested maroon/dark theme exclusively.</div>
+                    </div>
+                  </div>
                 </div>
                 <p className="text-xs mt-4" style={{ color: 'var(--text-tertiary)' }}>
                   Choose a theme that works best for your environment. High contrast mode improves readability for users with visual impairments.
@@ -1420,7 +1505,7 @@ function App() {
                   <div className="flex justify-end lg:justify-end">
                     <Button variant="primary" className="h-12 px-6 gap-2 shadow-[0_12px_24px_rgba(99,102,241,0.25)]" onClick={handleAddEquipment}>
                       <Plus size={20} strokeWidth={2.5} />
-                      Add New Equipment
+                      Add Asset
                     </Button>
                   </div>
                 </div>
@@ -1477,56 +1562,160 @@ function App() {
                             )}
                           </div>
                         </div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <select
-                            value={filters.status}
-                            onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-                            className="h-9 px-3 pr-8 rounded-full text-xs font-medium cursor-pointer transition-all hover:opacity-80"
-                            style={{
-                              WebkitAppearance: 'none',
-                              MozAppearance: 'none',
-                              appearance: 'none',
-                              background: filters.status ? 'var(--accent-primary)' : 'var(--bg-glass-light)',
-                              color: filters.status ? 'white' : 'var(--text-secondary)',
-                              border: `1px solid ${filters.status ? 'var(--accent-primary)' : 'var(--border-glass)'}`,
-                              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='${filters.status ? 'white' : 'currentColor'}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
-                              backgroundRepeat: 'no-repeat',
-                              backgroundPosition: 'right 10px center',
-                              backgroundSize: '12px 12px'
-                            }}
-                          >
-                            <option value="">All Status</option>
-                            <option value="active">Active</option>
-                            <option value="available">Available</option>
-                            <option value="maintenance">Maintenance</option>
-                            <option value="retired">Retired</option>
-                          </select>
-                          <select
-                            value={filters.condition}
-                            onChange={(e) => setFilters({ ...filters, condition: e.target.value })}
-                            className="h-9 px-3 pr-8 rounded-full text-xs font-medium cursor-pointer transition-all hover:opacity-80"
-                            style={{
-                              WebkitAppearance: 'none',
-                              MozAppearance: 'none',
-                              appearance: 'none',
-                              background: filters.condition ? 'var(--accent-primary)' : 'var(--bg-glass-light)',
-                              color: filters.condition ? 'white' : 'var(--text-secondary)',
-                              border: `1px solid ${filters.condition ? 'var(--accent-primary)' : 'var(--border-glass)'}`,
-                              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='${filters.condition ? 'white' : 'currentColor'}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
-                              backgroundRepeat: 'no-repeat',
-                              backgroundPosition: 'right 10px center',
-                              backgroundSize: '12px 12px'
-                            }}
-                          >
-                            <option value="">All Condition</option>
-                            <option value="new">New</option>
-                            <option value="good">Good</option>
-                            <option value="fair">Fair</option>
-                            <option value="poor">Poor</option>
-                          </select>
-                          {(filters.condition || filters.status) && (
+                        <div className="flex flex-wrap items-center gap-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>Category:</span>
+                            <select
+                              value={filters.category}
+                              onChange={(e) => setFilters({ ...filters, category: e.target.value, subCategory: '' })}
+                              className="h-9 px-3 pr-8 rounded-full text-xs font-medium cursor-pointer transition-all hover:opacity-80"
+                              style={{
+                                WebkitAppearance: 'none',
+                                MozAppearance: 'none',
+                                appearance: 'none',
+                                background: filters.category ? 'var(--bg-glass-light)' : 'var(--bg-glass-light)',
+                                color: filters.category ? 'var(--text-primary)' : 'var(--text-secondary)',
+                                border: `1px solid ${filters.category ? 'var(--accent-primary)' : 'var(--border-glass)'}`,
+                                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='${filters.category ? 'var(--accent-primary)' : 'currentColor'}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
+                                backgroundRepeat: 'no-repeat',
+                                backgroundPosition: 'right 10px center',
+                                backgroundSize: '12px 12px',
+                                minWidth: '140px'
+                              }}
+                            >
+                              <option value="">Select Category</option>
+                              <option value="transport">🚚 Transport</option>
+                              <option value="logistics">📦 Logistics</option>
+                              <option value="office">🏢 Office</option>
+                              <option value="other">📋 Other</option>
+                            </select>
+                          </div>
+                          {filters.category === 'logistics' && (
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>Type:</span>
+                              <select
+                                value={filters.subCategory}
+                                onChange={(e) => setFilters({ ...filters, subCategory: e.target.value })}
+                                className="h-9 px-3 pr-8 rounded-full text-xs font-medium cursor-pointer transition-all hover:opacity-80"
+                                style={{
+                                  WebkitAppearance: 'none',
+                                  MozAppearance: 'none',
+                                  appearance: 'none',
+                                  background: filters.subCategory ? 'var(--bg-glass-light)' : 'var(--bg-glass-light)',
+                                  color: filters.subCategory ? 'var(--text-primary)' : 'var(--text-secondary)',
+                                  border: `1px solid ${filters.subCategory ? 'var(--accent-primary)' : 'var(--border-glass)'}`,
+                                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='${filters.subCategory ? 'var(--accent-primary)' : 'currentColor'}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
+                                  backgroundRepeat: 'no-repeat',
+                                  backgroundPosition: 'right 10px center',
+                                  backgroundSize: '12px 12px',
+                                  minWidth: '160px'
+                                }}
+                              >
+                                <option value="">Select Type</option>
+                                <option value="wooden_crates">🪵 Wooden Crates</option>
+                                <option value="plastic_crates">🔲 Plastic Crates</option>
+                                <option value="pallets">📏 Pallets</option>
+                                <option value="storage_bins">🗄️ Storage Bins</option>
+                                <option value="wire_cages">🔗 Wire Cages</option>
+                              </select>
+                            </div>
+                          )}
+                          {filters.category === 'office' && (
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>Type:</span>
+                              <select
+                                value={filters.subCategory}
+                                onChange={(e) => setFilters({ ...filters, subCategory: e.target.value })}
+                                className="h-9 px-3 pr-8 rounded-full text-xs font-medium cursor-pointer transition-all hover:opacity-80"
+                                style={{
+                                  WebkitAppearance: 'none',
+                                  MozAppearance: 'none',
+                                  appearance: 'none',
+                                  background: filters.subCategory ? 'var(--bg-glass-light)' : 'var(--bg-glass-light)',
+                                  color: filters.subCategory ? 'var(--text-primary)' : 'var(--text-secondary)',
+                                  border: `1px solid ${filters.subCategory ? 'var(--accent-primary)' : 'var(--border-glass)'}`,
+                                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='${filters.subCategory ? 'var(--accent-primary)' : 'currentColor'}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
+                                  backgroundRepeat: 'no-repeat',
+                                  backgroundPosition: 'right 10px center',
+                                  backgroundSize: '12px 12px',
+                                  minWidth: '160px'
+                                }}
+                              >
+                                <option value="">Select Type</option>
+                                <option value="desktop_computer">🖥️ Desktop Computer</option>
+                                <option value="laptop">💻 Laptop</option>
+                                <option value="monitor">🖥️ Monitor</option>
+                                <option value="keyboard_mouse">⌨️ Keyboard & Mouse</option>
+                                <option value="printer">🖨️ Printer</option>
+                                <option value="photocopier">📄 Photocopier</option>
+                                <option value="scanner">🔍 Scanner</option>
+                                <option value="shredder">🗑️ Shredder</option>
+                                <option value="telephone">📞 Telephone</option>
+                                <option value="router">📶 Router</option>
+                                <option value="office_desk">🪑 Office Desk</option>
+                                <option value="office_chair">💺 Office Chair</option>
+                                <option value="filing_cabinet">📁 Filing Cabinet</option>
+                                <option value="bookshelf">📚 Bookshelf</option>
+                              </select>
+                            </div>
+                          )}
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>Status:</span>
+                            <select
+                              value={filters.status}
+                              onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+                              className="h-9 px-3 pr-8 rounded-full text-xs font-medium cursor-pointer transition-all hover:opacity-80"
+                              style={{
+                                WebkitAppearance: 'none',
+                                MozAppearance: 'none',
+                                appearance: 'none',
+                                background: filters.status ? 'var(--bg-glass-light)' : 'var(--bg-glass-light)',
+                                color: filters.status ? 'var(--text-primary)' : 'var(--text-secondary)',
+                                border: `1px solid ${filters.status ? 'var(--accent-primary)' : 'var(--border-glass)'}`,
+                                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='${filters.status ? 'var(--accent-primary)' : 'currentColor'}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
+                                backgroundRepeat: 'no-repeat',
+                                backgroundPosition: 'right 10px center',
+                                backgroundSize: '12px 12px',
+                                minWidth: '120px'
+                              }}
+                            >
+                              <option value="">All Status</option>
+                              <option value="active">✅ Active</option>
+                              <option value="available">🟢 Available</option>
+                              <option value="maintenance">🔧 Maintenance</option>
+                              <option value="retired">🔴 Retired</option>
+                            </select>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>Condition:</span>
+                            <select
+                              value={filters.condition}
+                              onChange={(e) => setFilters({ ...filters, condition: e.target.value })}
+                              className="h-9 px-3 pr-8 rounded-full text-xs font-medium cursor-pointer transition-all hover:opacity-80"
+                              style={{
+                                WebkitAppearance: 'none',
+                                MozAppearance: 'none',
+                                appearance: 'none',
+                                background: filters.condition ? 'var(--bg-glass-light)' : 'var(--bg-glass-light)',
+                                color: filters.condition ? 'var(--text-primary)' : 'var(--text-secondary)',
+                                border: `1px solid ${filters.condition ? 'var(--accent-primary)' : 'var(--border-glass)'}`,
+                                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='${filters.condition ? 'var(--accent-primary)' : 'currentColor'}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
+                                backgroundRepeat: 'no-repeat',
+                                backgroundPosition: 'right 10px center',
+                                backgroundSize: '12px 12px',
+                                minWidth: '120px'
+                              }}
+                            >
+                              <option value="">All Condition</option>
+                              <option value="new">✨ New</option>
+                              <option value="good">👍 Good</option>
+                              <option value="fair">⚖️ Fair</option>
+                              <option value="poor">👎 Poor</option>
+                            </select>
+                          </div>
+                          {(filters.condition || filters.status || filters.category || filters.subCategory) && (
                             <button
-                              onClick={() => setFilters({ condition: '', status: '' })}
+                              onClick={() => setFilters({ condition: '', status: '', category: '', subCategory: '' })}
                               className="h-9 px-3 rounded-full text-xs font-medium flex items-center gap-1 transition-all hover:opacity-80"
                               style={{
                                 background: 'var(--bg-glass-light)',
@@ -1572,20 +1761,45 @@ function App() {
                           <th className="sticky left-0 top-0 px-0 py-0 text-center font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ zIndex: 150, background: 'var(--bg-secondary)', isolation: 'isolate', borderRight: '2px solid var(--border-color)' }}>
                             <div style={{ zIndex: 151, padding: '12px 12px', background: 'var(--bg-secondary)', color: 'var(--accent-primary)', fontWeight: '800' }}>#</div>
                           </th>
-                          <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Equipment</th>
+                          <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Asset</th>
                           <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Asset Tag</th>
                           <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Serial</th>
-                          <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Type</th>
+                          {filters.category === 'logistics' && (
+                            <>
+                              <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Logistics Type</th>
+                              <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Quantity</th>
+                              <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Material</th>
+                              <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Dimensions</th>
+                              <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Load Capacity</th>
+                            </>
+                          )}
+                          {filters.category === 'office' && (
+                            <>
+                              <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Office Type</th>
+                              <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Specs</th>
+                              <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Use</th>
+                              <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Quantity</th>
+                            </>
+                          )}
+                          {filters.category === 'transport' && (
+                            <>
+                              <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Plate Number</th>
+                              <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Engine Number</th>
+                              <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Fuel Type</th>
+                              <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Capacity</th>
+                              <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Year</th>
+                            </>
+                          )}
+                          {!filters.category && (
+                            <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Type</th>
+                          )}
                           <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Hub</th>
-                          <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Date Purchase</th>
-                          <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Accessories</th>
                           <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Location</th>
                           <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Assigned</th>
                           <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Cond</th>
                           <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Status</th>
+                          <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Purchase Date</th>
                           <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Warranty</th>
-                          <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Added</th>
-                          <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Updated</th>
                           <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', letterSpacing: '0.1em', fontWeight: '800' }}>Action</th>
                         </tr>
                       </thead>
@@ -1666,45 +1880,67 @@ function App() {
                                 >
                                   {item.serial || <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>}
                                 </td>
-                                <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
-                                  {item.equipment_type || <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>}
-                                </td>
+                                {filters.category === 'logistics' && (
+                                  <>
+                                    <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                      {item.logistics_type || <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>}
+                                    </td>
+                                    <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                      {item.quantity || <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>}
+                                    </td>
+                                    <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                      {item.material || <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>}
+                                    </td>
+                                    <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                      {item.dimensions || <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>}
+                                    </td>
+                                    <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                      {item.load_capacity || <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>}
+                                    </td>
+                                  </>
+                                )}
+                                {filters.category === 'office' && (
+                                  <>
+                                    <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                      {item.office_type || <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>}
+                                    </td>
+                                    <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                      {item.specs || <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>}
+                                    </td>
+                                    <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                      {item.use || <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>}
+                                    </td>
+                                    <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                      {item.office_quantity || <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>}
+                                    </td>
+                                  </>
+                                )}
+                                {filters.category === 'transport' && (
+                                  <>
+                                    <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                      {item.plate_number || <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>}
+                                    </td>
+                                    <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                      {item.engine_number || <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>}
+                                    </td>
+                                    <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                      {item.fuel_type || <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>}
+                                    </td>
+                                    <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                      {item.capacity || <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>}
+                                    </td>
+                                    <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                      {item.year_manufactured || <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>}
+                                    </td>
+                                  </>
+                                )}
+                                {!filters.category && (
+                                  <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                    {item.equipment_type || <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>}
+                                  </td>
+                                )}
                                 <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
                                   {item.hub || <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>}
-                                </td>
-                                <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
-                                  {item.purchase_date ? new Date(item.purchase_date).toLocaleDateString() : <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>}
-                                </td>
-                                <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
-                                  {(() => {
-                                    let accessories = item.accessories;
-                                    if (typeof accessories === 'string') {
-                                      try { accessories = JSON.parse(accessories); } catch (e) { accessories = []; }
-                                    }
-                                    const accessoryLabels = {
-                                      'charger': 'Charger', 'mouse': 'Mouse', 'mousepad': 'Mousepad',
-                                      'keyboard': 'Keyboard', 'webcam': 'Webcam', 'headset': 'Headset',
-                                      'dongle': 'USB Dongle', 'bag': 'Laptop Bag', 'dock': 'Docking Station',
-                                      'case': 'Case', 'stylus': 'Stylus', 'screen-protector': 'Screen Protector',
-                                      'stand': 'Stand', 'power-cable': 'Power Cable', 'usb-cable': 'USB Cable',
-                                      'hdmi-cable': 'HDMI Cable', 'displayport-cable': 'DisplayPort Cable',
-                                      'vga-cable': 'VGA Cable', 'ethernet-cable': 'Ethernet Cable',
-                                      'ink-toner': 'Ink/Toner', 'paper-tray': 'Paper Tray', 'label-roll': 'Label Roll',
-                                      'ribbon': 'Ribbon', 'battery': 'Battery', 'mount': 'Mount',
-                                      'antenna': 'Antenna', 'manual': 'Manual', 'other': 'Other'
-                                    };
-                                    if (!accessories || !Array.isArray(accessories) || accessories.length === 0) {
-                                      return <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>;
-                                    }
-                                    const labels = accessories.map(a => accessoryLabels[a.type] || a.type);
-                                    const display = labels.slice(0, 2).join(', ');
-                                    const more = labels.length > 2 ? ` +${labels.length - 2} more` : '';
-                                    return (
-                                      <span title={labels.join(', ')}>
-                                        {display}{more && <span className="text-[var(--text-secondary)]">{more}</span>}
-                                      </span>
-                                    );
-                                  })()}
                                 </td>
                                 <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
                                   {item.location || <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>}
@@ -1746,6 +1982,9 @@ function App() {
                                   })()}
                                 </td>
                                 <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                  {item.purchase_date ? new Date(item.purchase_date).toLocaleDateString() : <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>}
+                                </td>
+                                <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
                                   {(() => {
                                     if (!item.warranty_date) {
                                       return <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>;
@@ -1767,18 +2006,6 @@ function App() {
                                       </span>
                                     );
                                   })()}
-                                </td>
-                            <td className="px-4 py-3 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
-                                  {item.created_at ? new Date(item.created_at).toLocaleDateString() : <span className="text-[var(--text-tertiary)]">—</span>}
-                                </td>
-                            <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
-                                  {item.updated_at ? (
-                                    <span title={new Date(item.updated_at).toLocaleString()}>
-                                      {new Date(item.updated_at).toLocaleDateString()}
-                                    </span>
-                                  ) : (
-                                    <span className="text-[var(--text-tertiary)]">—</span>
-                                  )}
                                 </td>
                             <td className="px-4 py-3 text-center">
                                   <div className="flex items-center justify-center gap-1">

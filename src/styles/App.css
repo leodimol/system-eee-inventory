@@ -97,8 +97,8 @@ body {
 }
 
 .nav-item.active {
-  background-color: #6366f1;
-  color: #ffffff;
+  background: var(--gradient-primary);
+  color: var(--text-primary);
 }
 
 .nav-item svg {
@@ -121,7 +121,7 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  background-color: #0f0f1a;
+  background-color: var(--bg-primary);
   overflow: hidden;
 }
 
@@ -155,7 +155,7 @@ body {
 .search-box {
   display: flex;
   align-items: center;
-  background-color: rgba(47, 124, 255, 0.08);
+  background-color: rgba(198, 40, 40, 0.06);
   border-radius: 8px;
   padding: 8px 16px;
   width: 300px;
@@ -187,7 +187,7 @@ body {
 }
 
 .icon-button:hover {
-  background-color: rgba(47, 124, 255, 0.12);
+  background-color: rgba(198, 40, 40, 0.12);
   color: #ffffff;
 }
 
@@ -206,7 +206,7 @@ body {
   align-items: center;
   gap: 12px;
   padding: 8px 16px;
-  background-color: rgba(47, 124, 255, 0.08);
+  background-color: rgba(198, 40, 40, 0.06);
   border-radius: 8px;
   cursor: pointer;
 }
@@ -292,7 +292,7 @@ body {
   justify-content: center;
 }
 
-.stat-card.total .stat-icon { background-color: rgba(47, 124, 255, 0.2); color: var(--accent-primary); }
+.stat-card.total .stat-icon { background-color: rgba(198, 40, 40, 0.15); color: var(--accent-primary); }
 .stat-card.active .stat-icon { background-color: rgba(16, 185, 129, 0.2); color: #10b981; }
 .stat-card.maintenance .stat-icon { background-color: rgba(245, 158, 11, 0.2); color: #f59e0b; }
 .stat-card.retired .stat-icon { background-color: rgba(239, 68, 68, 0.2); color: #ef4444; }
@@ -373,8 +373,8 @@ body {
 }
 
 .chart-btn.active {
-  background-color: #6366f1;
-  color: #ffffff;
+  background-color: var(--accent-primary);
+  color: var(--text-primary);
 }
 
 /* Table Styles */
@@ -417,12 +417,12 @@ body {
 }
 
 .btn-primary {
-  background-color: #6366f1;
-  color: #ffffff;
+  background-color: var(--accent-primary);
+  color: var(--text-primary);
 }
 
 .btn-primary:hover {
-  background-color: #4f46e5;
+  background-color: var(--accent-secondary);
 }
 
 .btn-secondary {
@@ -518,8 +518,8 @@ body {
 }
 
 .status-available {
-  background-color: rgba(99, 102, 241, 0.2);
-  color: #6366f1;
+  background-color: rgba(198, 40, 40, 0.12);
+  color: var(--accent-primary);
 }
 
 .action-btns {
@@ -583,7 +583,7 @@ body {
 }
 
 .filter-select:focus {
-  border-color: #6366f1;
+  border-color: var(--accent-primary);
 }
 
 /* Modal Styles */
@@ -642,6 +642,73 @@ body {
   padding: 24px;
 }
 
+.asset-category-intro {
+  padding: 24px;
+}
+
+.asset-category-rule {
+  height: 1px;
+  background: #2a2a4a;
+  margin-bottom: 22px;
+}
+
+.asset-category-rule + .asset-category-note,
+.asset-category-actions + .asset-category-rule {
+  margin-top: 22px;
+}
+
+.asset-category-instruction {
+  color: #f3f4f6;
+  font-size: 14px;
+  margin-bottom: 28px;
+}
+
+.asset-category-field {
+  display: grid;
+  grid-template-columns: 150px minmax(220px, 1fr);
+  align-items: center;
+  gap: 14px;
+  max-width: 520px;
+}
+
+.asset-category-field .form-label {
+  margin-bottom: 0;
+}
+
+.asset-category-select {
+  max-width: 320px;
+}
+
+.asset-category-error {
+  margin: 8px 0 0 164px;
+}
+
+.asset-category-actions {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 34px;
+}
+
+.asset-category-actions .btn {
+  min-width: 110px;
+  text-transform: uppercase;
+}
+
+.btn:disabled,
+.btn:disabled:hover {
+  cursor: not-allowed;
+  opacity: 0.5;
+  transform: none;
+  filter: none;
+}
+
+.asset-category-note {
+  color: #a1a1aa;
+  font-size: 13px;
+  margin-bottom: 0;
+}
+
 .form-group {
   margin-bottom: 20px;
 }
@@ -665,7 +732,7 @@ body {
 }
 
 .form-input:focus {
-  border-color: #6366f1;
+  border-color: var(--accent-primary);
 }
 
 .form-row {
@@ -700,7 +767,7 @@ body {
 }
 
 .report-card:hover {
-  border-color: #6366f1;
+  border-color: var(--accent-primary);
   transform: translateY(-2px);
 }
 
@@ -714,7 +781,7 @@ body {
   margin-bottom: 16px;
 }
 
-.report-icon.blue { background-color: rgba(99, 102, 241, 0.2); color: #6366f1; }
+.report-icon.blue { background-color: rgba(198, 40, 40, 0.12); color: var(--accent-primary); }
 .report-icon.green { background-color: rgba(16, 185, 129, 0.2); color: #10b981; }
 .report-icon.orange { background-color: rgba(245, 158, 11, 0.2); color: #f59e0b; }
 .report-icon.red { background-color: rgba(239, 68, 68, 0.2); color: #ef4444; }
@@ -764,7 +831,7 @@ body {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background-color: #6366f1;
+  background-color: var(--accent-primary);
 }
 
 .timeline-date {
@@ -918,5 +985,17 @@ body {
   
   .form-row {
     grid-template-columns: 1fr;
+  }
+
+  .asset-category-field {
+    grid-template-columns: 1fr;
+  }
+
+  .asset-category-select {
+    max-width: 100%;
+  }
+
+  .asset-category-error {
+    margin-left: 0;
   }
 }

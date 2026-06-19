@@ -186,7 +186,7 @@ export const dashboardStats = {
     { month: 'Mar', count: 156 }
   ],
   distributionByBrand: [
-    { name: 'Dell', value: 45, color: '#6366f1' },
+    { name: 'Dell', value: 45, color: '#c62828' },
     { name: 'HP', value: 30, color: '#10b981' },
     { name: 'Lenovo', value: 18, color: '#f59e0b' },
     { name: 'Apple', value: 7, color: '#ef4444' }

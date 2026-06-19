@@ -3,11 +3,14 @@ import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
 import './index.css'
 import { ThemeProvider } from './context/ThemeContext.jsx'
+import { UserProvider } from './context/UserContext.jsx'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <ThemeProvider>
-      <App />
-    </ThemeProvider>
+    <UserProvider>
+      <ThemeProvider>
+        <App />
+      </ThemeProvider>
+    </UserProvider>
   </React.StrictMode>,
 )

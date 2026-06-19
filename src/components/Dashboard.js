@@ -37,7 +37,7 @@ const Dashboard = () => {
       case 'active': return '#10b981';
       case 'maintenance': return '#f59e0b';
       case 'retired': return '#ef4444';
-      case 'available': return '#6366f1';
+      case 'available': return '#c62828';
       default: return '#888';
     }
   };
@@ -156,10 +156,10 @@ const Dashboard = () => {
               <Tooltip 
                 contentStyle={{ 
                   backgroundColor: 'rgba(26, 26, 46, 0.95)', 
-                  border: '1px solid rgba(99, 102, 241, 0.3)',
+                  border: '1px solid rgba(198, 40, 40, 0.18)',
                   borderRadius: '12px',
                   color: '#FFFFFF',
-                  boxShadow: '0 8px 32px rgba(99, 102, 241, 0.2)',
+                  boxShadow: '0 8px 32px rgba(198, 40, 40, 0.12)',
                   backdropFilter: 'blur(12px)',
                   padding: '12px 16px'
                 }}
@@ -169,7 +169,7 @@ const Dashboard = () => {
                   fontWeight: '500'
                 }}
                 labelStyle={{ 
-                  color: '#a5b4fc',
+                  color: '#c62828',
                   fontSize: '12px',
                   fontWeight: '600',
                   textTransform: 'uppercase',
@@ -179,9 +179,9 @@ const Dashboard = () => {
               <Line 
                 type="monotone" 
                 dataKey="count" 
-                stroke="#6366f1" 
+                stroke="#c62828" 
                 strokeWidth={2}
-                dot={{ fill: '#6366f1' }}
+                dot={{ fill: '#c62828' }}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -209,10 +209,10 @@ const Dashboard = () => {
               <Tooltip 
                 contentStyle={{ 
                   backgroundColor: 'rgba(26, 26, 46, 0.95)', 
-                  border: '1px solid rgba(99, 102, 241, 0.3)',
+                  border: '1px solid rgba(198, 40, 40, 0.18)',
                   borderRadius: '12px',
                   color: '#FFFFFF',
-                  boxShadow: '0 8px 32px rgba(99, 102, 241, 0.2)',
+                  boxShadow: '0 8px 32px rgba(198, 40, 40, 0.12)',
                   backdropFilter: 'blur(12px)',
                   padding: '12px 16px'
                 }}
@@ -251,7 +251,7 @@ const Dashboard = () => {
               contentStyle={{ backgroundColor: '#1a1a2e', border: '1px solid #2a2a4a' }}
               labelStyle={{ color: '#fff' }}
             />
-            <Bar dataKey="count" fill="#6366f1" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="count" fill="#c62828" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>

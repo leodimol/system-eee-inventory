@@ -1,71 +1,54 @@
 import React from 'react';
-import { Loader2, Package, Database, Wifi } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 const LoadingScreen = ({ message = "Loading Inventory System..." }) => {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center gradient-mesh">
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-20 left-20 w-72 h-72 bg-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-20 right-20 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-teal-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
-      </div>
-
-      {/* Main Loading Content */}
-      <div className="relative z-10 flex flex-col items-center space-y-8">
-        {/* Logo and Icons Container */}
+    <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'var(--bg-primary)' }}>
+      <div className="flex flex-col items-center space-y-8">
+        {/* Logo */}
         <div className="relative">
-          {/* Central Loader */}
-          <div className="w-24 h-24 relative">
-            <div className="absolute inset-0 rounded-full border-4 border-blue-500/20"></div>
-            <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-blue-500 animate-spin"></div>
-            <div className="absolute inset-2 rounded-full border-4 border-purple-500/20"></div>
-            <div className="absolute inset-2 rounded-full border-4 border-transparent border-t-purple-500 animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}></div>
-            
-            {/* Center Icon */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <Package className="w-10 h-10 text-blue-500 animate-pulse" />
+          {/* Multi-layer glow effects */}
+          <div className="absolute inset-0 rounded-2xl blur-3xl animate-pulse" style={{ 
+            background: 'var(--accent-primary)', 
+            opacity: '0.4'
+          }}></div>
+          <div className="absolute inset-2 rounded-2xl blur-2xl animate-pulse" style={{ 
+            background: 'var(--accent-secondary)', 
+            opacity: '0.3'
+          }}></div>
+          <div className="absolute inset-4 rounded-2xl blur-xl animate-pulse" style={{ 
+            background: 'rgba(255, 255, 255, 0.2)', 
+            opacity: '0.5'
+          }}></div>
+          
+          {/* Logo container */}
+          <div className="relative p-4 rounded-2xl" style={{ 
+            background: 'white', 
+            boxShadow: '0 0 30px rgba(255, 34, 34, 0.5), 0 0 60px rgba(255, 34, 34, 0.3), inset 0 0 20px rgba(255, 34, 34, 0.1)'
+          }}>
+            <img
+              src="/loadingscreen.logo.png"
+              alt="EEE Logo"
+              className="w-32 h-32 object-contain"
+              onError={(e) => {
+                e.target.style.display = 'none';
+                e.target.nextElementSibling.style.display = 'flex';
+              }}
+            />
+            <div className="absolute inset-4 items-center justify-center hidden">
+              <Loader2 className="w-16 h-16 animate-spin" style={{ color: 'var(--accent-primary)' }} />
             </div>
           </div>
-
-          {/* Orbiting Icons */}
-          <Database className="absolute -top-8 -left-8 w-6 h-6 text-purple-400 animate-spin-slow" />
-          <Wifi className="absolute -top-8 -right-8 w-6 h-6 text-teal-400 animate-spin-slow" style={{ animationDelay: '0.5s' }} />
-          <Loader2 className="absolute -bottom-8 -left-8 w-6 h-6 text-blue-400 animate-spin" />
         </div>
 
-        {/* Loading Text */}
+        {/* Text */}
         <div className="text-center space-y-3">
-          <h1 className="text-2xl font-bold text-gradient">Laptop Inventory System</h1>
-          <p className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
-            {message}
-          </p>
-          
-          {/* Loading Dots */}
-          <div className="flex justify-center space-x-2">
-            <div className="w-2 h-2 rounded-full bg-blue-500 animate-bounce"></div>
-            <div className="w-2 h-2 rounded-full bg-purple-500 animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-            <div className="w-2 h-2 rounded-full bg-teal-500 animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-          </div>
+          <h1 className="text-3xl font-bold tracking-wide" style={{ color: 'var(--text-primary)' }}>EEE Asset Inventory</h1>
+          <p className="text-base font-medium" style={{ color: 'var(--text-secondary)' }}>{message}</p>
         </div>
 
-        {/* Progress Bar */}
-        <div className="w-64 h-1 rounded-full overflow-hidden" style={{ background: 'rgba(255, 255, 255, 0.1)' }}>
-          <div className="h-full rounded-full shimmer" style={{ width: '60%' }}></div>
-        </div>
-
-        {/* Status Messages */}
-        <div className="text-center space-y-1">
-          <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>Initializing database connection...</p>
-          <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>Loading inventory data...</p>
-        </div>
-      </div>
-
-      {/* Bottom Branding */}
-      <div className="absolute bottom-8 left-0 right-0 text-center">
-        <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
-          Powered by React + Supabase
-        </p>
+        {/* Spinner */}
+        <Loader2 className="w-8 h-8 animate-spin" style={{ color: 'var(--accent-primary)' }} />
       </div>
     </div>
   );
