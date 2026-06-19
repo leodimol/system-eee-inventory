@@ -4,27 +4,39 @@ import { Loader2 } from 'lucide-react';
 const LoadingScreen = ({ message = "Loading Inventory System..." }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'var(--bg-primary)' }}>
+      <style>{`
+        @keyframes glow-pulse {
+          0%, 100% {
+            opacity: 0.3;
+            transform: scale(1);
+          }
+          50% {
+            opacity: 0.6;
+            transform: scale(1.1);
+          }
+        }
+        @keyframes float {
+          0%, 100% {
+            transform: translateY(0px);
+          }
+          50% {
+            transform: translateY(-10px);
+          }
+        }
+      `}</style>
       <div className="flex flex-col items-center space-y-8">
         {/* Logo */}
         <div className="relative">
-          {/* Multi-layer glow effects */}
-          <div className="absolute inset-0 rounded-2xl blur-3xl animate-pulse" style={{ 
-            background: 'var(--accent-primary)', 
-            opacity: '0.4'
-          }}></div>
-          <div className="absolute inset-2 rounded-2xl blur-2xl animate-pulse" style={{ 
-            background: 'var(--accent-secondary)', 
-            opacity: '0.3'
-          }}></div>
-          <div className="absolute inset-4 rounded-2xl blur-xl animate-pulse" style={{ 
-            background: 'rgba(255, 255, 255, 0.2)', 
-            opacity: '0.5'
+          {/* Unique glow animation effect */}
+          <div className="absolute inset-0 blur-3xl animate-pulse" style={{ 
+            background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))',
+            opacity: '0.5',
+            animation: 'glow-pulse 2s ease-in-out infinite'
           }}></div>
           
           {/* Logo container */}
-          <div className="relative p-4 rounded-2xl" style={{ 
-            background: 'white', 
-            boxShadow: '0 0 30px rgba(255, 34, 34, 0.5), 0 0 60px rgba(255, 34, 34, 0.3), inset 0 0 20px rgba(255, 34, 34, 0.1)'
+          <div className="relative p-4" style={{ 
+            animation: 'float 3s ease-in-out infinite'
           }}>
             <img
               src="/loadingscreen.logo.png"
