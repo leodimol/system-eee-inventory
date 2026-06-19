@@ -347,6 +347,13 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [pageLoading, setPageLoading] = useState(false);
 
+  // General Settings state
+  const [generalSettings, setGeneralSettings] = useState({
+    autoRefresh: true,
+    compactView: false,
+    desktopNotifications: true
+  });
+
   // Preload logo image immediately to prevent delay
   useEffect(() => {
     // Create preload link
@@ -1323,26 +1330,6 @@ function App() {
                 <h2 className="text-3xl font-black tracking-tight">System Settings</h2>
               </div>
 
-              {/* Theme Settings */}
-              <div className="glass-card-modern p-6">
-                <h4 className="text-lg font-bold mb-6 flex items-center gap-2">
-                  <Palette size={20} style={{ color: 'var(--accent-purple)' }} />
-                  Appearance
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-1 gap-3">
-                  <div className="p-4 rounded-[16px] flex items-center gap-4 bg-[var(--bg-glass-light)] border" style={{ borderColor: 'var(--accent-primary)' }}>
-                    <Database size={24} style={{ color: 'var(--accent-primary)' }} />
-                    <div>
-                      <div className="text-sm font-semibold">Dark Red (Applied)</div>
-                      <div className="text-xs" style={{ color: 'var(--text-tertiary)' }}>The application uses the suggested maroon/dark theme exclusively.</div>
-                    </div>
-                  </div>
-                </div>
-                <p className="text-xs mt-4" style={{ color: 'var(--text-tertiary)' }}>
-                  Choose a theme that works best for your environment. High contrast mode improves readability for users with visual impairments.
-                </p>
-              </div>
-
               {/* General Settings */}
               <div className="glass-card-modern p-6">
                 <h4 className="text-lg font-bold mb-6 flex items-center gap-2">
@@ -1351,12 +1338,12 @@ function App() {
                 </h4>
                 <div className="space-y-4">
                   {[
-                    { label: 'Auto-refresh Data', desc: 'Refresh inventory every 5 minutes', active: true },
-                    { label: 'Compact View', desc: 'Reduce spacing in tables', active: false },
-                    { label: 'Desktop Notifications', desc: 'Get alerts for system events', active: true },
+                    { key: 'autoRefresh', label: 'Auto-refresh Data', desc: 'Refresh inventory every 5 minutes' },
+                    { key: 'compactView', label: 'Compact View', desc: 'Reduce spacing in tables' },
+                    { key: 'desktopNotifications', label: 'Desktop Notifications', desc: 'Get alerts for system events' },
                   ].map((setting) => (
                     <div 
-                      key={setting.label}
+                      key={setting.key}
                       className="flex items-center justify-between py-3"
                       style={{ borderBottom: '1px solid var(--border-glass)' }}
                     >
@@ -1366,15 +1353,16 @@ function App() {
                       </div>
                       <div 
                         className={`w-12 h-6 rounded-full relative cursor-pointer transition-colors ${
-                          setting.active ? '' : ''
+                          generalSettings[setting.key] ? '' : ''
                         }`}
-                        style={{ background: setting.active ? 'var(--accent-primary)' : 'var(--bg-glass-light)' }}
+                        style={{ background: generalSettings[setting.key] ? 'var(--accent-primary)' : 'var(--bg-glass-light)' }}
+                        onClick={() => setGeneralSettings(prev => ({ ...prev, [setting.key]: !prev[setting.key] }))}
                       >
                         <div 
                           className="w-5 h-5 bg-white rounded-full absolute top-0.5 transition-all"
                           style={{ 
-                            right: setting.active ? '2px' : 'auto',
-                            left: setting.active ? 'auto' : '2px'
+                            right: generalSettings[setting.key] ? '2px' : 'auto',
+                            left: generalSettings[setting.key] ? 'auto' : '2px'
                           }}
                         ></div>
                       </div>
