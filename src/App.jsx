@@ -913,46 +913,6 @@ function App() {
     XLSX.writeFile(wb, `inventory-${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
-  // Export to PDF (temporarily disabled due to jspdf import issues)
-  const exportPDF = () => {
-    // PDF export temporarily disabled
-    alert('PDF export temporarily disabled due to deployment issues');
-    return;
-    /*
-    const doc = new jsPDF();
-    const exportData = equipment.map(item => [
-      item.asset_tag || '',
-      item.brand || '',
-      item.model || '',
-      item.serial || '',
-      item.equipment_type || item.category || '',
-      item.status || '',
-      item.condition || '',
-      item.location || '',
-      item.hub || '',
-      item.assigned_to || '',
-      item.purchase_date || '',
-      item.warranty_date || ''
-    ]);
-
-    doc.setFontSize(18);
-    doc.text('Equipment Inventory Report', 14, 22);
-    doc.setFontSize(11);
-    doc.text(`Exported: ${new Date().toLocaleDateString()}`, 14, 30);
-    doc.text(`Total Assets: ${equipment.length}`, 14, 38);
-
-    autoTable(doc, {
-      head: [['Asset Tag', 'Brand', 'Model', 'Serial', 'Category', 'Status', 'Condition', 'Location', 'Hub', 'Assigned To', 'Purchase Date', 'Warranty Date']],
-      body: exportData,
-      startY: 45,
-      styles: { fontSize: 8 },
-      headStyles: { fillColor: [59, 130, 246] }
-    });
-
-    doc.save(`inventory-export-${new Date().toISOString().split('T')[0]}.pdf`);
-    */
-  };
-
   // Download Excel Template for bulk import
   const downloadTemplate = async () => {
     const workbook = new ExcelJS.Workbook();
@@ -1873,10 +1833,7 @@ function App() {
                       <FileDown size={18} strokeWidth={2} />
                       Export Excel
                     </Button>
-                    <Button variant="secondary" className="w-full h-12 px-5 gap-2 sm:w-auto" onClick={exportPDF}>
-                      <FileDown size={18} strokeWidth={2} />
-                      Export PDF
-                    </Button>
+                    {/* PDF export temporarily disabled due to deployment issues */}
                   </div>
                   <div className="flex justify-end lg:justify-end">
                     <Button variant="primary" className="h-12 px-6 gap-2 shadow-[0_12px_24px_rgba(99,102,241,0.25)]" onClick={handleAddEquipment}>
