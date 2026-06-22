@@ -96,7 +96,7 @@ const Sidebar = ({ activePage, setActivePage, inventoryCount, hubsCount, effecti
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={20} /> },
-    { id: 'inventory', label: 'Asset', icon: <Package size={20} />, badge: inventoryCount },
+    { id: 'inventory', label: 'Asset', icon: <Package size={20} />, badge: inventoryCount > 0 ? inventoryCount : null },
   ];
 
   const adminItems = [
