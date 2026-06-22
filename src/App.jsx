@@ -1356,7 +1356,7 @@ function App() {
         <Sidebar
           activePage={activePage}
           setActivePage={setActivePage}
-          inventoryCount={stats?.total || 0}
+          inventoryCount={allEquipment.length}
           hubsCount={hubs.length}
           effectiveTheme={effectiveTheme}
           isCollapsed={isSidebarCollapsed}
