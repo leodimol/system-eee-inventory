@@ -21,8 +21,8 @@ import {
   Line
 } from 'recharts';
 import * as XLSX from 'xlsx';
-import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
+// import jsPDF from 'jspdf';
+// import autoTable from 'jspdf-autotable';
 import ExcelJS from 'exceljs';
 import {
   LayoutDashboard,
@@ -915,8 +915,12 @@ function App() {
     XLSX.writeFile(wb, `inventory-${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
-  // Export to PDF
+  // Export to PDF (temporarily disabled due to jspdf import issues)
   const exportPDF = () => {
+    // PDF export temporarily disabled
+    alert('PDF export temporarily disabled due to deployment issues');
+    return;
+    /*
     const doc = new jsPDF();
     const exportData = equipment.map(item => [
       item.asset_tag || '',
@@ -948,6 +952,7 @@ function App() {
     });
 
     doc.save(`inventory-export-${new Date().toISOString().split('T')[0]}.pdf`);
+    */
   };
 
   // Download Excel Template for bulk import
