@@ -557,6 +557,7 @@ function App() {
   const {
     equipment: allEquipmentForSidebar,
     loading: sidebarEquipLoading,
+    totalCount: sidebarTotalCount,
   } = useEquipment('all', 1, {}, '', false);
   const { theme, setTheme, themes, effectiveTheme } = useTheme();
 
@@ -1362,7 +1363,7 @@ function App() {
         <Sidebar
           activePage={activePage}
           setActivePage={setActivePage}
-          inventoryCount={allEquipmentForSidebar.length}
+          inventoryCount={sidebarTotalCount}
           hubsCount={hubs.length}
           effectiveTheme={effectiveTheme}
           isCollapsed={isSidebarCollapsed}
@@ -1372,7 +1373,7 @@ function App() {
       </div>
 
       {/* Debug: Log equipment count */}
-      {console.log('Sidebar count debug - allEquipmentForSidebar.length:', allEquipmentForSidebar.length, 'sidebarEquipLoading:', sidebarEquipLoading)}
+      {console.log('Sidebar count debug - sidebarTotalCount:', sidebarTotalCount, 'sidebarEquipLoading:', sidebarEquipLoading)}
 
       <div className={`flex-1 flex flex-col min-w-0 overflow-hidden transition-all duration-300 ${isSidebarCollapsed ? 'ml-20' : 'ml-64'}`}>
 
