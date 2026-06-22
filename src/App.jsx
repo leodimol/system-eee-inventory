@@ -86,7 +86,7 @@ import { checkDuplicates } from './utils/duplicateCheck';
 import AnalyticsDashboard from './components/AnalyticsDashboard';
 import Toast from './components/ui/Toast';
 
-const Sidebar = ({ activePage, setActivePage, inventoryCount, hubsCount, effectiveTheme, isCollapsed, onToggle, onLogout }) => {
+const Sidebar = ({ activePage, setActivePage, inventoryCount, hubsCount, effectiveTheme, isCollapsed, onToggle, onLogout, onCloseMobile }) => {
   const [showTooltip, setShowTooltip] = useState(false);
   const [hoveredItem, setHoveredItem] = useState(null);
 
@@ -118,40 +118,57 @@ const Sidebar = ({ activePage, setActivePage, inventoryCount, hubsCount, effecti
             <p className="text-[10px] uppercase tracking-wider font-bold" style={{ color: 'var(--text-tertiary)' }}>System</p>
           </div>
         )}
-        <div className="relative flex-shrink-0 ml-auto">
-          <button
-            onClick={onToggle}
-            onMouseEnter={() => setShowTooltip(true)}
-            onMouseLeave={() => setShowTooltip(false)}
-            className="p-3 rounded-lg transition-all duration-300 hover:scale-110"
-            style={{
-              color: 'var(--text-secondary)',
-              background: 'linear-gradient(135deg, rgba(47, 124, 255, 0.14), rgba(190, 70, 255, 0.14))',
-              border: '1px solid rgba(47, 124, 255, 0.28)',
-              boxShadow: '0 0 0 1px rgba(47, 124, 255, 0.12), 0 4px 12px rgba(47, 124, 255, 0.18)'
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.background = 'linear-gradient(135deg, rgba(47, 124, 255, 0.2), rgba(190, 70, 255, 0.2))';
-              e.currentTarget.style.boxShadow = '0 0 0 1px rgba(47, 124, 255, 0.4), 0 6px 20px rgba(47, 124, 255, 0.25)';
-              e.currentTarget.style.borderColor = 'rgba(47, 124, 255, 0.45)';
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.background = 'linear-gradient(135deg, rgba(47, 124, 255, 0.14), rgba(190, 70, 255, 0.14))';
-              e.currentTarget.style.boxShadow = '0 0 0 1px rgba(47, 124, 255, 0.12), 0 4px 12px rgba(47, 124, 255, 0.18)';
-              e.currentTarget.style.borderColor = 'rgba(47, 124, 255, 0.28)';
-            }}
-          >
-            {isCollapsed ? (
-              <ChevronRight size={20} strokeWidth={2} />
-            ) : (
-              <ChevronLeft size={20} strokeWidth={2} />
-            )}
-          </button>
-          {showTooltip && (
-            <div className="sidebar-tooltip">
-              {isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            </div>
+        <div className="flex items-center gap-2 ml-auto">
+          {/* Mobile Close Button */}
+          {onCloseMobile && (
+            <button
+              onClick={onCloseMobile}
+              className="lg:hidden p-2 rounded-lg transition-all duration-300 hover:scale-110"
+              style={{
+                color: 'var(--text-secondary)',
+                background: 'var(--bg-glass-light)',
+                border: '1px solid var(--border-glass)'
+              }}
+            >
+              <X size={20} strokeWidth={2} />
+            </button>
           )}
+          {/* Desktop Collapse Button */}
+          <div className="relative hidden lg:block">
+            <button
+              onClick={onToggle}
+              onMouseEnter={() => setShowTooltip(true)}
+              onMouseLeave={() => setShowTooltip(false)}
+              className="p-3 rounded-lg transition-all duration-300 hover:scale-110"
+              style={{
+                color: 'var(--text-secondary)',
+                background: 'linear-gradient(135deg, rgba(47, 124, 255, 0.14), rgba(190, 70, 255, 0.14))',
+                border: '1px solid rgba(47, 124, 255, 0.28)',
+                boxShadow: '0 0 0 1px rgba(47, 124, 255, 0.12), 0 4px 12px rgba(47, 124, 255, 0.18)'
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.background = 'linear-gradient(135deg, rgba(47, 124, 255, 0.2), rgba(190, 70, 255, 0.2))';
+                e.currentTarget.style.boxShadow = '0 0 0 1px rgba(47, 124, 255, 0.4), 0 6px 20px rgba(47, 124, 255, 0.25)';
+                e.currentTarget.style.borderColor = 'rgba(47, 124, 255, 0.45)';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.background = 'linear-gradient(135deg, rgba(47, 124, 255, 0.14), rgba(190, 70, 255, 0.14))';
+                e.currentTarget.style.boxShadow = '0 0 0 1px rgba(47, 124, 255, 0.12), 0 4px 12px rgba(47, 124, 255, 0.18)';
+                e.currentTarget.style.borderColor = 'rgba(47, 124, 255, 0.28)';
+              }}
+            >
+              {isCollapsed ? (
+                <ChevronRight size={20} strokeWidth={2} />
+              ) : (
+                <ChevronLeft size={20} strokeWidth={2} />
+              )}
+            </button>
+            {showTooltip && (
+              <div className="sidebar-tooltip">
+                {isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -1352,6 +1369,7 @@ function App() {
           isCollapsed={isSidebarCollapsed}
           onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
           onLogout={handleLogout}
+          onCloseMobile={() => setIsMobileSidebarOpen(false)}
         />
       </div>
 
@@ -1677,21 +1695,23 @@ function App() {
                       accept=".csv,.xlsx,.xls"
                       className="hidden"
                     />
-                    <Button variant="secondary" className="w-full h-12 px-4 gap-2" onClick={downloadTemplate}>
-                      <FileDown size={26} strokeWidth={2} />
-                      Download Template
+                    <Button variant="secondary" className="w-full h-12 px-3 sm:px-4 gap-2 text-sm" onClick={downloadTemplate}>
+                      <FileDown size={20} strokeWidth={2} />
+                      <span className="hidden sm:inline">Download Template</span>
+                      <span className="sm:hidden">Template</span>
                     </Button>
-                    <Button variant="secondary" className="w-full h-12 px-4 gap-2" onClick={() => fileInputRef.current?.click()}>
-                      <FileUp size={26} strokeWidth={2} />
+                    <Button variant="secondary" className="w-full h-12 px-3 sm:px-4 gap-2 text-sm" onClick={() => fileInputRef.current?.click()}>
+                      <FileUp size={20} strokeWidth={2} />
                       Import
                     </Button>
-                    <Button variant="secondary" className="w-full h-12 px-4 gap-2" onClick={exportCSV}>
-                      <FileDown size={26} strokeWidth={2} />
-                      Export Excel
+                    <Button variant="secondary" className="w-full h-12 px-3 sm:px-4 gap-2 text-sm" onClick={exportCSV}>
+                      <FileDown size={20} strokeWidth={2} />
+                      <span className="hidden sm:inline">Export Excel</span>
+                      <span className="sm:hidden">Export</span>
                     </Button>
                   </div>
-                  <Button variant="primary" className="w-full sm:w-auto h-12 px-6 gap-2 shadow-[0_12px_24px_rgba(99,102,241,0.25)]" onClick={handleAddEquipment}>
-                    <Plus size={20} strokeWidth={2.5} />
+                  <Button variant="primary" className="w-full sm:w-auto h-12 px-4 sm:px-6 gap-2 shadow-[0_12px_24px_rgba(99,102,241,0.25)] text-sm" onClick={handleAddEquipment}>
+                    <Plus size={18} strokeWidth={2.5} />
                     Add Asset
                   </Button>
                 </div>
