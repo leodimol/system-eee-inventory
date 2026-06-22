@@ -1372,9 +1372,6 @@ function App() {
         />
       </div>
 
-      {/* Debug: Log equipment count */}
-      {console.log('Sidebar count debug - sidebarTotalCount:', sidebarTotalCount, 'sidebarEquipLoading:', sidebarEquipLoading)}
-
       <div className={`flex-1 flex flex-col min-w-0 overflow-hidden transition-all duration-300 ${isSidebarCollapsed ? 'ml-20' : 'ml-64'}`}>
 
         {/* Page Content */}
