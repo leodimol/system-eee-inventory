@@ -330,7 +330,9 @@ function App() {
     status: '',
     hub: '',
     category: '',
-    subCategory: ''
+    subCategory: '',
+    location: '',
+    dateRange: ''
   });
   const [isFullView, setIsFullView] = useState(false);
 
@@ -562,14 +564,41 @@ function App() {
         (filters.category === 'office' && item.office_type === filters.subCategory);
       const matchesStatus = !filters.status || item.status === filters.status;
       const matchesCondition = !filters.condition || item.condition === filters.condition;
+      const matchesLocation = !filters.location || item.location === filters.location;
+      
+      // Date range filtering
+      let matchesDateRange = true;
+      if (filters.dateRange) {
+        const itemDate = new Date(item.created_at || item.purchase_date);
+        const now = new Date();
+        const daysDiff = Math.floor((now - itemDate) / (1000 * 60 * 60 * 24));
+        
+        switch (filters.dateRange) {
+          case '7days':
+            matchesDateRange = daysDiff <= 7;
+            break;
+          case '30days':
+            matchesDateRange = daysDiff <= 30;
+            break;
+          case '90days':
+            matchesDateRange = daysDiff <= 90;
+            break;
+          case '1year':
+            matchesDateRange = daysDiff <= 365;
+            break;
+        }
+      }
+      
+      // Improved search to work for Asset ID, Name, Serial No., Plate No.
       const matchesSearch = !searchQuery ||
+        (item.asset_tag && item.asset_tag.toLowerCase().includes(searchQuery.toLowerCase())) ||
         (item.brand && item.brand.toLowerCase().includes(searchQuery.toLowerCase())) ||
         (item.model && item.model.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (item.asset_tag && item.asset_tag.toLowerCase().includes(searchQuery.toLowerCase())) ||
         (item.serial && item.serial.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (item.plate_number && item.plate_number.toLowerCase().includes(searchQuery.toLowerCase())) ||
         (item.assigned_to && item.assigned_to.toLowerCase().includes(searchQuery.toLowerCase()));
 
-      return matchesCategory && matchesSubCategory && matchesStatus && matchesCondition && matchesSearch;
+      return matchesCategory && matchesSubCategory && matchesStatus && matchesCondition && matchesLocation && matchesDateRange && matchesSearch;
     });
   }, [allEquipment, filters, searchQuery]);
 
@@ -1715,14 +1744,67 @@ function App() {
                                 backgroundRepeat: 'no-repeat',
                                 backgroundPosition: 'right 10px center',
                                 backgroundSize: '12px 12px',
-                                minWidth: '120px'
+                                minWidth: '140px'
                               }}
                             >
                               <option value="">All Status</option>
-                              <option value="active">✅ Active</option>
-                              <option value="available">🟢 Available</option>
-                              <option value="maintenance">🔧 Maintenance</option>
-                              <option value="retired">🔴 Retired</option>
+                              <option value="available">✅ Available</option>
+                              <option value="idle">✅ Idle</option>
+                              <option value="maintenance">⚠️ Under Maintenance</option>
+                              <option value="retired">❌ Retired</option>
+                            </select>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>Location:</span>
+                            <select
+                              value={filters.location}
+                              onChange={(e) => setFilters({ ...filters, location: e.target.value })}
+                              className="h-9 px-3 pr-8 rounded-full text-xs font-medium cursor-pointer transition-all hover:opacity-80"
+                              style={{
+                                WebkitAppearance: 'none',
+                                MozAppearance: 'none',
+                                appearance: 'none',
+                                background: filters.location ? 'var(--bg-glass-light)' : 'var(--bg-glass-light)',
+                                color: filters.location ? 'var(--text-primary)' : 'var(--text-secondary)',
+                                border: `1px solid ${filters.location ? 'var(--accent-primary)' : 'var(--border-glass)'}`,
+                                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='${filters.location ? 'var(--accent-primary)' : 'currentColor'}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
+                                backgroundRepeat: 'no-repeat',
+                                backgroundPosition: 'right 10px center',
+                                backgroundSize: '12px 12px',
+                                minWidth: '140px'
+                              }}
+                            >
+                              <option value="">All Locations</option>
+                              {hubs.map(hub => (
+                                <option key={hub.id} value={hub.name}>{hub.name}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>Date Range:</span>
+                            <select
+                              value={filters.dateRange}
+                              onChange={(e) => setFilters({ ...filters, dateRange: e.target.value })}
+                              className="h-9 px-3 pr-8 rounded-full text-xs font-medium cursor-pointer transition-all hover:opacity-80"
+                              style={{
+                                WebkitAppearance: 'none',
+                                MozAppearance: 'none',
+                                appearance: 'none',
+                                background: filters.dateRange ? 'var(--bg-glass-light)' : 'var(--bg-glass-light)',
+                                color: filters.dateRange ? 'var(--text-primary)' : 'var(--text-secondary)',
+                                border: `1px solid ${filters.dateRange ? 'var(--accent-primary)' : 'var(--border-glass)'}`,
+                                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='${filters.dateRange ? 'var(--accent-primary)' : 'currentColor'}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
+                                backgroundRepeat: 'no-repeat',
+                                backgroundPosition: 'right 10px center',
+                                backgroundSize: '12px 12px',
+                                minWidth: '140px'
+                              }}
+                            >
+                              <option value="">All Time</option>
+                              <option value="7days">Last 7 Days</option>
+                              <option value="30days">Last 30 Days</option>
+                              <option value="90days">Last 90 Days</option>
+                              <option value="1year">Last Year</option>
                             </select>
                           </div>
                           <div className="flex items-center gap-2">
@@ -1752,9 +1834,9 @@ function App() {
                               <option value="poor">👎 Poor</option>
                             </select>
                           </div>
-                          {(filters.condition || filters.status || filters.category || filters.subCategory) && (
+                          {(filters.condition || filters.status || filters.category || filters.subCategory || filters.location || filters.dateRange) && (
                             <button
-                              onClick={() => setFilters({ condition: '', status: '', category: '', subCategory: '' })}
+                              onClick={() => setFilters({ condition: '', status: '', category: '', subCategory: '', location: '', dateRange: '' })}
                               className="h-9 px-3 rounded-full text-xs font-medium flex items-center gap-1 transition-all hover:opacity-80"
                               style={{
                                 background: 'var(--bg-glass-light)',
@@ -1763,9 +1845,22 @@ function App() {
                               }}
                             >
                               <X size={12} />
-                              Clear
+                              Clear Filters
                             </button>
                           )}
+                          <button
+                            onClick={() => refresh()}
+                            className="h-9 px-3 rounded-full text-xs font-medium flex items-center gap-1 transition-all hover:opacity-80"
+                            style={{
+                              background: 'var(--bg-glass-light)',
+                              color: 'var(--text-secondary)',
+                              border: '1px solid var(--border-glass)'
+                            }}
+                            title="Refresh data"
+                          >
+                            <RefreshCw size={12} />
+                            Refresh
+                          </button>
                         </div>
                       </div>
                       <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -1839,6 +1934,8 @@ function App() {
                           <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Status</th>
                           <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Purchase Date</th>
                           <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Warranty</th>
+                          <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Updated By</th>
+                          <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Updated</th>
                           <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', letterSpacing: '0.1em', fontWeight: '800' }}>Action</th>
                         </tr>
                       </thead>
@@ -2045,6 +2142,17 @@ function App() {
                                       </span>
                                     );
                                   })()}
+                                </td>
+                                <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                  {item.added_by || <span style={{ color: 'var(--text-tertiary)', fontStyle: 'italic' }}>Unknown</span>}
+                                </td>
+                                <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                  {item.updated_at 
+                                    ? new Date(item.updated_at).toLocaleDateString() + ' ' + new Date(item.updated_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+                                    : (item.created_at 
+                                      ? new Date(item.created_at).toLocaleDateString() + ' ' + new Date(item.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+                                      : <span style={{ color: 'var(--text-tertiary)', fontStyle: 'italic' }}>Unknown</span>)
+                                  }
                                 </td>
                             <td className="px-4 py-3 text-center">
                                   <div className="flex items-center justify-center gap-1">

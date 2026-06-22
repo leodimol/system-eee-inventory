@@ -397,10 +397,14 @@ const AddAssetModal = ({ isOpen, onClose, asset = null, onSaved }) => {
       });
 
       if (duplicateCheck.hasDuplicates) {
+        setToast({
+          message: `Duplicate detected: ${duplicateCheck.messages.join(', ')}. Please review before continuing.`,
+          type: 'warning'
+        });
         const confirmed = window.confirm(
           `Warning: ${duplicateCheck.messages.join('\n')}\n\n` +
           `Existing assets:\n${duplicateCheck.duplicates.map(d => 
-            `- ${d.model} (${d.asset_tag || 'No Tag'}) - ${d.status}`
+            `- ${d.model || 'Unknown'} (${d.asset_tag || 'No Tag'}) - ${d.status || 'Unknown'}`
           ).join('\n')}\n\nDo you want to continue saving?`
         );
         if (!confirmed) {
@@ -505,11 +509,17 @@ const AddAssetModal = ({ isOpen, onClose, asset = null, onSaved }) => {
       setSelectedLogisticsType('');
       setSelectedOfficeType('');
       setFormData(emptyForm);
-      setToast({ message: isEditMode ? 'Equipment updated successfully' : 'Equipment added successfully', type: 'success' });
+      setToast({ 
+        message: isEditMode ? 'Equipment updated successfully! Changes have been saved.' : 'Equipment added successfully! You can now view it in the inventory.', 
+        type: 'success' 
+      });
     } catch (err) {
       console.error('Error saving asset:', err);
       console.error('Error details:', err.message, err.details, err.hint);
-      setToast({ message: `Failed to save asset: ${err.message || 'Please try again.'}`, type: 'error' });
+      setToast({ 
+        message: `Failed to save asset: ${err.message || 'Please check your data and try again.'}`, 
+        type: 'error' 
+      });
     } finally {
       setLoading(false);
     }
