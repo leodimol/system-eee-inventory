@@ -539,7 +539,7 @@ function App() {
   };
 
   const { hubs, loading: hubsLoading } = useHubs();
-  const { stats, loading: statsLoading } = useEquipmentStats(selectedHub);
+  const { stats, loading: statsLoading } = useEquipmentStats('all');
   const {
     equipment: allEquipment,
     loading: equipLoading,
