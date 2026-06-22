@@ -354,6 +354,13 @@ function App() {
     desktopNotifications: true
   });
 
+  // Auto-logout state
+  const [logoutWarning, setLogoutWarning] = useState(false);
+  const logoutTimerRef = useRef(null);
+  const warningTimerRef = useRef(null);
+  const INACTIVITY_LIMIT = 15 * 60 * 1000; // 15 minutes
+  const WARNING_TIME = 1 * 60 * 1000; // 1 minute warning
+
   // Preload logo image immediately to prevent delay
   useEffect(() => {
     // Create preload link
@@ -454,6 +461,50 @@ function App() {
 
     return () => authListener?.subscription?.unsubscribe();
   }, []);
+
+  // Auto-logout functionality
+  useEffect(() => {
+    if (!authUser) return;
+
+    const resetTimers = () => {
+      // Clear existing timers
+      if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current);
+      if (warningTimerRef.current) clearTimeout(warningTimerRef.current);
+      
+      setLogoutWarning(false);
+
+      // Set warning timer (14 minutes)
+      warningTimerRef.current = setTimeout(() => {
+        setLogoutWarning(true);
+      }, INACTIVITY_LIMIT - WARNING_TIME);
+
+      // Set logout timer (15 minutes)
+      logoutTimerRef.current = setTimeout(async () => {
+        await handleLogout();
+        setToast({ message: 'You have been logged out due to inactivity', type: 'info' });
+      }, INACTIVITY_LIMIT);
+    };
+
+    // Activity events to track
+    const activityEvents = ['mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
+    
+    // Add event listeners
+    activityEvents.forEach(event => {
+      document.addEventListener(event, resetTimers);
+    });
+
+    // Start initial timers
+    resetTimers();
+
+    // Cleanup
+    return () => {
+      activityEvents.forEach(event => {
+        document.removeEventListener(event, resetTimers);
+      });
+      if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current);
+      if (warningTimerRef.current) clearTimeout(warningTimerRef.current);
+    };
+  }, [authUser]);
 
   const handleLogin = async (event) => {
     event.preventDefault();
@@ -2096,6 +2147,44 @@ function App() {
           type={toast.type}
           onClose={() => setToast(null)}
         />
+      )}
+
+      {/* Auto-logout warning modal */}
+      {logoutWarning && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-[var(--bg-secondary)] rounded-2xl p-6 max-w-md mx-4 border border-[var(--border-glass)] shadow-2xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-[var(--accent-orange)]/20 flex items-center justify-center">
+                <Clock size={20} style={{ color: 'var(--accent-orange)' }} />
+              </div>
+              <h3 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>Session Expiring</h3>
+            </div>
+            <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>
+              Your session will expire in 1 minute due to inactivity. Do you want to stay logged in?
+            </p>
+            <div className="flex gap-3">
+              <Button
+                variant="secondary"
+                onClick={async () => {
+                  await handleLogout();
+                  setLogoutWarning(false);
+                }}
+              >
+                Logout Now
+              </Button>
+              <Button
+                onClick={() => {
+                  // Reset timers by simulating activity
+                  const event = new Event('mousedown');
+                  document.dispatchEvent(event);
+                  setLogoutWarning(false);
+                }}
+              >
+                Stay Logged In
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

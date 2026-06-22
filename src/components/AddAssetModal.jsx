@@ -120,10 +120,10 @@ const AddAssetModal = ({ isOpen, onClose, asset = null, onSaved }) => {
   const [formData, setFormData] = useState(emptyForm);
 
   const statusOptions = [
-    { value: 'available', label: 'Available' },
-    { value: 'in_use', label: 'In Use' },
-    { value: 'maintenance', label: 'Maintenance' },
-    { value: 'retired', label: 'Retired' }
+    { value: 'available', label: '✅ Available - Working, ready for assignment' },
+    { value: 'idle', label: '✅ Idle - Working, currently not in use' },
+    { value: 'maintenance', label: '⚠️ Under Maintenance - Temporarily out of service' },
+    { value: 'retired', label: '❌ Retired/Disposed - Permanently removed' }
   ];
 
   const conditionOptions = [
@@ -268,6 +268,32 @@ const AddAssetModal = ({ isOpen, onClose, asset = null, onSaved }) => {
     if (!formData.asset_tag) validationErrors.asset_tag = 'Asset tag is required';
     if (!formData.added_by) validationErrors.added_by = 'Added By is required';
 
+    // Date format validation
+    if (formData.purchase_date) {
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+      if (!dateRegex.test(formData.purchase_date)) {
+        validationErrors.purchase_date = 'Invalid date format. Use YYYY-MM-DD';
+      }
+    }
+    if (formData.warranty_date) {
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+      if (!dateRegex.test(formData.warranty_date)) {
+        validationErrors.warranty_date = 'Invalid date format. Use YYYY-MM-DD';
+      }
+    }
+    if (formData.last_service) {
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+      if (!dateRegex.test(formData.last_service)) {
+        validationErrors.last_service = 'Invalid date format. Use YYYY-MM-DD';
+      }
+    }
+    if (formData.release_datetime) {
+      const dateTimeRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
+      if (!dateTimeRegex.test(formData.release_datetime)) {
+        validationErrors.release_datetime = 'Invalid datetime format. Use YYYY-MM-DDTHH:MM';
+      }
+    }
+
     // Release mode validation
     if (formData.idle_release === 'release') {
       if (!formData.location) validationErrors.location = 'Location is required when releasing';
@@ -298,10 +324,45 @@ const AddAssetModal = ({ isOpen, onClose, asset = null, onSaved }) => {
   }, [formData.asset_tag]);
 
   useEffect(() => {
+    if (formData.serial && errors.serial) {
+      setErrors(prev => ({ ...prev, serial: '' }));
+    }
+  }, [formData.serial]);
+
+  useEffect(() => {
     if (formData.added_by && errors.added_by) {
       setErrors(prev => ({ ...prev, added_by: '' }));
     }
   }, [formData.added_by]);
+
+  // Real-time duplicate check
+  useEffect(() => {
+    const checkRealTimeDuplicates = async () => {
+      if (formData.asset_tag || formData.serial) {
+        try {
+          const duplicateCheck = await checkDuplicates({
+            serial: formData.serial,
+            assetTag: formData.asset_tag,
+            excludeId: asset?.id
+          });
+
+          if (duplicateCheck.hasDuplicates) {
+            if (formData.asset_tag && duplicateCheck.duplicates.some(d => d.asset_tag === formData.asset_tag)) {
+              setErrors(prev => ({ ...prev, asset_tag: 'Asset ID already exists' }));
+            }
+            if (formData.serial && duplicateCheck.duplicates.some(d => d.serial === formData.serial)) {
+              setErrors(prev => ({ ...prev, serial: 'Serial Number already exists' }));
+            }
+          }
+        } catch (error) {
+          console.error('Real-time duplicate check failed:', error);
+        }
+      }
+    };
+
+    const debounceTimer = setTimeout(checkRealTimeDuplicates, 500);
+    return () => clearTimeout(debounceTimer);
+  }, [formData.asset_tag, formData.serial, asset?.id]);
 
   useEffect(() => {
     if (formData.idle_release === 'release') {
@@ -618,6 +679,7 @@ const AddAssetModal = ({ isOpen, onClose, asset = null, onSaved }) => {
                 className={`form-input ${errors.plate_number ? 'border-red-500' : ''}`}
                 placeholder="e.g. ABC-1234"
               />
+              <p className="form-hint">Vehicle license plate number (required)</p>
               {errors.plate_number && <p className="error-text">{errors.plate_number}</p>}
             </div>
 
@@ -1861,6 +1923,7 @@ const AddAssetModal = ({ isOpen, onClose, asset = null, onSaved }) => {
                 placeholder="e.g. 50"
                 min="1"
               />
+              <p className="form-hint">Number of items (required)</p>
               {errors.quantity && <p className="error-text">{errors.quantity}</p>}
             </div>
 
@@ -1967,6 +2030,7 @@ const AddAssetModal = ({ isOpen, onClose, asset = null, onSaved }) => {
             className={`form-input ${errors.brand ? 'border-red-500' : ''}`}
             placeholder="e.g. Toyota, Ford, Honda"
           />
+          <p className="form-hint">Manufacturer or brand name (required)</p>
           {errors.brand && <p className="error-text">{errors.brand}</p>}
         </div>
       )}
@@ -1983,6 +2047,7 @@ const AddAssetModal = ({ isOpen, onClose, asset = null, onSaved }) => {
             className={`form-input ${errors.model ? 'border-red-500' : ''}`}
             placeholder="e.g. Camry, F-150, Civic"
           />
+          <p className="form-hint">Specific model or version (required)</p>
           {errors.model && <p className="error-text">{errors.model}</p>}
         </div>
       )}
@@ -1998,6 +2063,7 @@ const AddAssetModal = ({ isOpen, onClose, asset = null, onSaved }) => {
           className={`form-input ${errors.asset_tag ? 'border-red-500' : ''}`}
           placeholder="e.g. IT-2024-001"
         />
+        <p className="form-hint">Unique identifier for the asset (required)</p>
         {errors.asset_tag && <p className="error-text">{errors.asset_tag}</p>}
       </div>
 
@@ -2117,6 +2183,7 @@ const AddAssetModal = ({ isOpen, onClose, asset = null, onSaved }) => {
           className={`form-input ${errors.added_by ? 'border-red-500' : ''}`}
           placeholder="e.g. John Smith"
         />
+        <p className="form-hint">Name of the person adding this asset (required)</p>
         {errors.added_by && <p className="error-text">{errors.added_by}</p>}
       </div>
 
@@ -2241,6 +2308,12 @@ const AddAssetModal = ({ isOpen, onClose, asset = null, onSaved }) => {
             input[type="datetime-local"]:focus {
               outline: none;
               box-shadow: none;
+            }
+            .form-hint {
+              font-size: 11px;
+              color: #6b7280;
+              margin-top: 4px;
+              font-style: italic;
             }
           `}</style>
           {errors.release_datetime && <p className="error-text">{errors.release_datetime}</p>}
