@@ -86,7 +86,7 @@ import { checkDuplicates } from './utils/duplicateCheck';
 import AnalyticsDashboard from './components/AnalyticsDashboard';
 import Toast from './components/ui/Toast';
 
-const Sidebar = ({ activePage, setActivePage, inventoryCount, hubsCount, effectiveTheme, isCollapsed, onToggle, onLogout, onCloseMobile }) => {
+const Sidebar = ({ activePage, setActivePage, inventoryCount, hubsCount, effectiveTheme, isCollapsed, onToggle, onLogout }) => {
   const [showTooltip, setShowTooltip] = useState(false);
   const [hoveredItem, setHoveredItem] = useState(null);
 
@@ -118,57 +118,40 @@ const Sidebar = ({ activePage, setActivePage, inventoryCount, hubsCount, effecti
             <p className="text-[10px] uppercase tracking-wider font-bold" style={{ color: 'var(--text-tertiary)' }}>System</p>
           </div>
         )}
-        <div className="flex items-center gap-2 ml-auto">
-          {/* Mobile Close Button */}
-          {onCloseMobile && (
-            <button
-              onClick={onCloseMobile}
-              className="lg:hidden p-2 rounded-lg transition-all duration-300 hover:scale-110"
-              style={{
-                color: 'var(--text-secondary)',
-                background: 'var(--bg-glass-light)',
-                border: '1px solid var(--border-glass)'
-              }}
-            >
-              <X size={20} strokeWidth={2} />
-            </button>
-          )}
-          {/* Desktop Collapse Button */}
-          <div className="relative hidden lg:block">
-            <button
-              onClick={onToggle}
-              onMouseEnter={() => setShowTooltip(true)}
-              onMouseLeave={() => setShowTooltip(false)}
-              className="p-3 rounded-lg transition-all duration-300 hover:scale-110"
-              style={{
-                color: 'var(--text-secondary)',
-                background: 'linear-gradient(135deg, rgba(47, 124, 255, 0.14), rgba(190, 70, 255, 0.14))',
-                border: '1px solid rgba(47, 124, 255, 0.28)',
-                boxShadow: '0 0 0 1px rgba(47, 124, 255, 0.12), 0 4px 12px rgba(47, 124, 255, 0.18)'
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.background = 'linear-gradient(135deg, rgba(47, 124, 255, 0.2), rgba(190, 70, 255, 0.2))';
-                e.currentTarget.style.boxShadow = '0 0 0 1px rgba(47, 124, 255, 0.4), 0 6px 20px rgba(47, 124, 255, 0.25)';
-                e.currentTarget.style.borderColor = 'rgba(47, 124, 255, 0.45)';
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.background = 'linear-gradient(135deg, rgba(47, 124, 255, 0.14), rgba(190, 70, 255, 0.14))';
-                e.currentTarget.style.boxShadow = '0 0 0 1px rgba(47, 124, 255, 0.12), 0 4px 12px rgba(47, 124, 255, 0.18)';
-                e.currentTarget.style.borderColor = 'rgba(47, 124, 255, 0.28)';
-              }}
-            >
-              {isCollapsed ? (
-                <ChevronRight size={20} strokeWidth={2} />
-              ) : (
-                <ChevronLeft size={20} strokeWidth={2} />
-              )}
-            </button>
-            {showTooltip && (
-              <div className="sidebar-tooltip">
-                {isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-              </div>
+        <div className="relative flex-shrink-0 ml-auto">
+          <button
+            onClick={onToggle}
+            onMouseEnter={() => setShowTooltip(true)}
+            onMouseLeave={() => setShowTooltip(false)}
+            className="p-3 rounded-lg transition-all duration-300 hover:scale-110"
+            style={{
+              color: 'var(--text-secondary)',
+              background: 'linear-gradient(135deg, rgba(47, 124, 255, 0.14), rgba(190, 70, 255, 0.14))',
+              border: '1px solid rgba(47, 124, 255, 0.28)',
+              boxShadow: '0 0 0 1px rgba(47, 124, 255, 0.12), 0 4px 12px rgba(47, 124, 255, 0.18)'
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.background = 'linear-gradient(135deg, rgba(47, 124, 255, 0.2), rgba(190, 70, 255, 0.2))';
+              e.currentTarget.style.boxShadow = '0 0 0 1px rgba(47, 124, 255, 0.4), 0 6px 20px rgba(47, 124, 255, 0.25)';
+              e.currentTarget.style.borderColor = 'rgba(47, 124, 255, 0.45)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.background = 'linear-gradient(135deg, rgba(47, 124, 255, 0.14), rgba(190, 70, 255, 0.14))';
+              e.currentTarget.style.boxShadow = '0 0 0 1px rgba(47, 124, 255, 0.12), 0 4px 12px rgba(47, 124, 255, 0.18)';
+              e.currentTarget.style.borderColor = 'rgba(47, 124, 255, 0.28)';
+            }}
+          >
+            {isCollapsed ? (
+              <ChevronRight size={20} strokeWidth={2} />
+            ) : (
+              <ChevronLeft size={20} strokeWidth={2} />
             )}
-          </div>
+          </button>
+          {showTooltip && (
+            <div className="sidebar-tooltip">
+              {isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            </div>
+          )}
         </div>
       </div>
 
@@ -1336,30 +1319,8 @@ function App() {
 
   return (
     <div className={`min-h-screen flex ${effectiveTheme}`} style={{ background: 'var(--bg-primary)' }}>
-      {/* Mobile Menu Button */}
-      <button
-        onClick={() => setIsMobileSidebarOpen(true)}
-        className="lg:hidden fixed top-4 left-4 z-30 p-3 rounded-xl"
-        style={{
-          background: 'var(--bg-glass-light)',
-          border: '1px solid var(--border-glass)',
-          color: 'var(--text-primary)',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-        }}
-      >
-        <Menu size={24} strokeWidth={2} />
-      </button>
-
-      {/* Mobile Sidebar Overlay */}
-      {isMobileSidebarOpen && (
-        <div
-          className="lg:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
-          onClick={() => setIsMobileSidebarOpen(false)}
-        />
-      )}
-
       {/* Sidebar */}
-      <div className={`fixed left-0 top-0 h-screen z-20 transition-transform duration-300 ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+      <div className="fixed left-0 top-0 h-screen z-20">
         <Sidebar
           activePage={activePage}
           setActivePage={setActivePage}
@@ -1369,11 +1330,10 @@ function App() {
           isCollapsed={isSidebarCollapsed}
           onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
           onLogout={handleLogout}
-          onCloseMobile={() => setIsMobileSidebarOpen(false)}
         />
       </div>
 
-      <div className={`flex-1 flex flex-col min-w-0 overflow-hidden transition-all duration-300 ${isSidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'} ml-0`}>
+      <div className={`flex-1 flex flex-col min-w-0 overflow-hidden transition-all duration-300 ${isSidebarCollapsed ? 'ml-20' : 'ml-64'}`}>
 
         {/* Page Content */}
         <div
@@ -1669,19 +1629,19 @@ function App() {
 
                   <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     <div className="bg-[var(--bg-secondary)] border border-[var(--border-glass)] rounded-2xl p-4 flex flex-col justify-center relative overflow-hidden" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-                      <p className="text-[10px] font-bold uppercase tracking-normal leading-tight break-words" style={{ color: 'var(--text-tertiary)' }}>Total Assets</p>
+                      <p className="text-[10px] font-bold uppercase tracking-normal" style={{ color: 'var(--text-tertiary)' }}>Total Assets</p>
                       <p className="text-2xl font-black" style={{ color: 'var(--text-primary)' }}>{dashboardStats.total}</p>
                     </div>
                     <div className="bg-[var(--bg-secondary)] border border-[var(--border-glass)] rounded-2xl p-4 flex flex-col justify-center relative overflow-hidden" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-                      <p className="text-[10px] font-bold uppercase tracking-normal leading-tight break-words" style={{ color: 'var(--text-tertiary)' }}>Active</p>
+                      <p className="text-[10px] font-bold uppercase tracking-normal" style={{ color: 'var(--text-tertiary)' }}>Active</p>
                       <p className="text-2xl font-black" style={{ color: 'var(--accent-green)' }}>{dashboardStats.active}</p>
                     </div>
                     <div className="bg-[var(--bg-secondary)] border border-[var(--border-glass)] rounded-2xl p-4 flex flex-col justify-center relative overflow-hidden" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-                      <p className="text-[10px] font-bold uppercase tracking-normal leading-tight break-words" style={{ color: 'var(--text-tertiary)' }}>Maintenance</p>
+                      <p className="text-[10px] font-bold uppercase tracking-normal" style={{ color: 'var(--text-tertiary)' }}>Maintenance</p>
                       <p className="text-2xl font-black" style={{ color: 'var(--accent-orange)' }}>{dashboardStats.maintenance}</p>
                     </div>
                     <div className="bg-[var(--bg-secondary)] border border-[var(--border-glass)] rounded-2xl p-4 flex flex-col justify-center relative overflow-hidden" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-                      <p className="text-[10px] font-bold uppercase tracking-normal leading-tight break-words" style={{ color: 'var(--text-tertiary)' }}>Retired</p>
+                      <p className="text-[10px] font-bold uppercase tracking-normal" style={{ color: 'var(--text-tertiary)' }}>Retired</p>
                       <p className="text-2xl font-black" style={{ color: 'var(--accent-red)' }}>{dashboardStats.retired}</p>
                     </div>
                   </div>
@@ -1695,23 +1655,21 @@ function App() {
                       accept=".csv,.xlsx,.xls"
                       className="hidden"
                     />
-                    <Button variant="secondary" className="w-full h-12 px-3 sm:px-4 gap-2 text-sm" onClick={downloadTemplate}>
-                      <FileDown size={20} strokeWidth={2} />
-                      <span className="hidden sm:inline">Download Template</span>
-                      <span className="sm:hidden">Template</span>
+                    <Button variant="secondary" className="w-full h-12 px-4 gap-2" onClick={downloadTemplate}>
+                      <FileDown size={26} strokeWidth={2} />
+                      Download Template
                     </Button>
-                    <Button variant="secondary" className="w-full h-12 px-3 sm:px-4 gap-2 text-sm" onClick={() => fileInputRef.current?.click()}>
-                      <FileUp size={20} strokeWidth={2} />
+                    <Button variant="secondary" className="w-full h-12 px-4 gap-2" onClick={() => fileInputRef.current?.click()}>
+                      <FileUp size={26} strokeWidth={2} />
                       Import
                     </Button>
-                    <Button variant="secondary" className="w-full h-12 px-3 sm:px-4 gap-2 text-sm" onClick={exportCSV}>
-                      <FileDown size={20} strokeWidth={2} />
-                      <span className="hidden sm:inline">Export Excel</span>
-                      <span className="sm:hidden">Export</span>
+                    <Button variant="secondary" className="w-full h-12 px-4 gap-2" onClick={exportCSV}>
+                      <FileDown size={26} strokeWidth={2} />
+                      Export Excel
                     </Button>
                   </div>
-                  <Button variant="primary" className="w-full sm:w-auto h-12 px-4 sm:px-6 gap-2 shadow-[0_12px_24px_rgba(99,102,241,0.25)] text-sm" onClick={handleAddEquipment}>
-                    <Plus size={18} strokeWidth={2.5} />
+                  <Button variant="primary" className="w-full sm:w-auto h-12 px-6 gap-2 shadow-[0_12px_24px_rgba(99,102,241,0.25)]" onClick={handleAddEquipment}>
+                    <Plus size={20} strokeWidth={2.5} />
                     Add Asset
                   </Button>
                 </div>
