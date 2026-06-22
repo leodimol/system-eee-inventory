@@ -544,7 +544,7 @@ const AnalyticsDashboard = ({ equipment, filters, compact }) => {
 
           {/* Hub Distribution */}
           <div className="bg-[var(--bg-glass-light)] rounded-lg p-4 border border-[var(--border-glass)]">
-            <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">Hub/Location Distribution</h3>
+            <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">Location Distribution</h3>
             <div className="h-48">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={hubData} margin={{ top: 15, right: 20, left: 15, bottom: 5 }}>
