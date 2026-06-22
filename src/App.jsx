@@ -1428,7 +1428,7 @@ function App() {
                     }}
                   >
                     <option value="all">All Hubs</option>
-                    {hubs.map(hub => (
+                    {hubs.sort((a, b) => a.name.localeCompare(b.name)).map(hub => (
                       <option key={hub.id} value={hub.id}>{hub.name}</option>
                     ))}
                   </select>
@@ -1438,7 +1438,7 @@ function App() {
                     value={analyticsFilters.status}
                     onChange={(e) => setAnalyticsFilters({...analyticsFilters, status: e.target.value})}
                     className="h-9 px-3 pr-8 rounded-full text-xs font-medium cursor-pointer"
-                    style={{ 
+                    style={{
                       WebkitAppearance: 'none',
                       MozAppearance: 'none',
                       appearance: 'none',
@@ -2082,7 +2082,7 @@ function App() {
                               }}
                             >
                               <option value="">All Locations</option>
-                              {hubs.map(hub => (
+                              {hubs.sort((a, b) => a.name.localeCompare(b.name)).map(hub => (
                                 <option key={hub.id} value={hub.name}>{hub.name}</option>
                               ))}
                             </select>
