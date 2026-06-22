@@ -222,18 +222,6 @@ const AnalyticsDashboard = ({ equipment, filters, compact }) => {
       color: CHART_COLORS[Object.keys(hubCounts).indexOf(name) % CHART_COLORS.length]
     })).sort((a, b) => b.value - a.value);
 
-    // === SAMPLE DATA FOR DEMONSTRATION - REMOVE THIS SECTION ===
-    if (result.length === 0 || (result.length === 1 && result[0].name === 'Unknown')) {
-      result = [
-        { name: 'Main Warehouse', value: 85, color: COLORS.primary },
-        { name: 'North Hub', value: 45, color: COLORS.secondary },
-        { name: 'South Depot', value: 62, color: COLORS.info },
-        { name: 'East Distribution', value: 38, color: COLORS.warning },
-        { name: 'West Center', value: 28, color: COLORS.purple }
-      ];
-    }
-    // === END SAMPLE DATA ===
-
     return result;
   }, [filteredEquipment]);
 
@@ -251,18 +239,6 @@ const AnalyticsDashboard = ({ equipment, filters, compact }) => {
       color: CHART_COLORS[Object.keys(conditionCounts).indexOf(name) % CHART_COLORS.length]
     })).sort((a, b) => b.value - a.value);
 
-    // === SAMPLE DATA FOR DEMONSTRATION - REMOVE THIS SECTION ===
-    if (result.length === 0) {
-      result = [
-        { name: 'Excellent', value: 95, color: COLORS.secondary },
-        { name: 'Good', value: 78, color: COLORS.info },
-        { name: 'Fair', value: 23, color: COLORS.warning },
-        { name: 'Poor', value: 8, color: COLORS.danger },
-        { name: 'Unknown', value: 4, color: '#6b7280' }
-      ];
-    }
-    // === END SAMPLE DATA ===
-
     return result;
   }, [filteredEquipment]);
 
@@ -279,21 +255,6 @@ const AnalyticsDashboard = ({ equipment, filters, compact }) => {
       value,
       color: CHART_COLORS[Object.keys(typeCounts).indexOf(name) % CHART_COLORS.length]
     })).sort((a, b) => b.value - a.value);
-
-    // === SAMPLE DATA FOR DEMONSTRATION - REMOVE THIS SECTION ===
-    if (result.length === 0 || (result.length === 1 && result[0].name === 'Unknown')) {
-      result = [
-        { name: 'Laptop', value: 45, color: COLORS.primary },
-        { name: 'Printer', value: 28, color: COLORS.secondary },
-        { name: 'Monitor', value: 35, color: COLORS.info },
-        { name: 'Scanner', value: 18, color: COLORS.warning },
-        { name: 'Tablet', value: 22, color: COLORS.danger },
-        { name: 'Network', value: 15, color: COLORS.purple },
-        { name: 'Computer', value: 32, color: COLORS.pink },
-        { name: 'Vehicle', value: 12, color: COLORS.info }
-      ];
-    }
-    // === END SAMPLE DATA ===
 
     return result;
   }, [filteredEquipment]);
@@ -313,14 +274,6 @@ const AnalyticsDashboard = ({ equipment, filters, compact }) => {
       else if (age >= 3) upcoming++;
       else if (age >= 1) future++;
     });
-
-    let result = { immediate, upcoming, future };
-
-    // === SAMPLE DATA FOR DEMONSTRATION - REMOVE THIS SECTION ===
-    if (result.immediate === 0 && result.upcoming === 0 && result.future === 0) {
-      result = { immediate: 8, upcoming: 15, future: 32 };
-    }
-    // === END SAMPLE DATA ===
 
     return result;
   }, [filteredEquipment]);
@@ -347,18 +300,6 @@ const AnalyticsDashboard = ({ equipment, filters, compact }) => {
     });
 
     let result = Object.entries(distribution).map(([name, value]) => ({ name, value }));
-
-    // === SAMPLE DATA FOR DEMONSTRATION - REMOVE THIS SECTION ===
-    if (result.every(item => item.value === 0)) {
-      result = [
-        { name: '0-1 years', value: 45 },
-        { name: '1-2 years', value: 38 },
-        { name: '2-3 years', value: 28 },
-        { name: '3-5 years', value: 35 },
-        { name: '5+ years', value: 18 }
-      ];
-    }
-    // === END SAMPLE DATA ===
 
     return result;
   }, [filteredEquipment]);
@@ -403,18 +344,6 @@ const AnalyticsDashboard = ({ equipment, filters, compact }) => {
       color: CHART_COLORS[allCategories.indexOf(category) % CHART_COLORS.length]
     })).sort((a, b) => b.value - a.value);
 
-    // === SAMPLE DATA FOR DEMONSTRATION - REMOVE THIS SECTION ===
-    // This adds sample data when actual data is mostly "other" to show dashboard functionality
-    if (result.every(item => item.value === 0)) {
-      result = [
-        { name: '🚚 Transport', value: 45, color: COLORS.primary },
-        { name: '📦 Logistics', value: 78, color: COLORS.secondary },
-        { name: '🏢 Office', value: 62, color: COLORS.info },
-        { name: '📋 Other', value: 23, color: COLORS.warning }
-      ];
-    }
-    // === END SAMPLE DATA ===
-
     return result;
   }, [filteredEquipment]);
 
@@ -435,18 +364,6 @@ const AnalyticsDashboard = ({ equipment, filters, compact }) => {
       { name: 'Retired', value: statusCounts.retired || 0, color: COLORS.purple },
       { name: 'Unknown', value: statusCounts.unknown || 0, color: '#6b7280' }
     ].filter(item => item.value > 0);
-
-    // === SAMPLE DATA FOR DEMONSTRATION - REMOVE THIS SECTION ===
-    if (result.length === 0) {
-      result = [
-        { name: 'Active', value: 85, color: COLORS.primary },
-        { name: 'Available', value: 62, color: COLORS.secondary },
-        { name: 'In Use', value: 45, color: COLORS.info },
-        { name: 'Maintenance', value: 12, color: COLORS.warning },
-        { name: 'Damaged', value: 4, color: COLORS.danger }
-      ];
-    }
-    // === END SAMPLE DATA ===
 
     return result;
   }, [filteredEquipment]);
