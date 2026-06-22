@@ -1319,8 +1319,30 @@ function App() {
 
   return (
     <div className={`min-h-screen flex ${effectiveTheme}`} style={{ background: 'var(--bg-primary)' }}>
+      {/* Mobile Menu Button */}
+      <button
+        onClick={() => setIsMobileSidebarOpen(true)}
+        className="lg:hidden fixed top-4 left-4 z-30 p-3 rounded-xl"
+        style={{
+          background: 'var(--bg-glass-light)',
+          border: '1px solid var(--border-glass)',
+          color: 'var(--text-primary)',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+        }}
+      >
+        <Menu size={24} strokeWidth={2} />
+      </button>
+
+      {/* Mobile Sidebar Overlay */}
+      {isMobileSidebarOpen && (
+        <div
+          className="lg:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+          onClick={() => setIsMobileSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <div className="fixed left-0 top-0 h-screen z-20">
+      <div className={`fixed left-0 top-0 h-screen z-20 transition-transform duration-300 ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         <Sidebar
           activePage={activePage}
           setActivePage={setActivePage}
@@ -1333,7 +1355,7 @@ function App() {
         />
       </div>
 
-      <div className={`flex-1 flex flex-col min-w-0 overflow-hidden transition-all duration-300 ${isSidebarCollapsed ? 'ml-20' : 'ml-64'}`}>
+      <div className={`flex-1 flex flex-col min-w-0 overflow-hidden transition-all duration-300 ${isSidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'} ml-0`}>
 
         {/* Page Content */}
         <div
