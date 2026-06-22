@@ -1627,27 +1627,27 @@ function App() {
                     Global tracking across {hubs.length} active logistics hubs.
                   </p>
 
-                  <div className="inventory-summary mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                    <div className="inventory-stat">
-                      <p className="stat-label">Total Assets</p>
-                      <p className="stat-value">{dashboardStats.total}</p>
+                  <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    <div className="glass-card-modern p-4">
+                      <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color: 'var(--text-tertiary)' }}>Total Assets</p>
+                      <p className="text-2xl font-black" style={{ color: 'var(--text-primary)' }}>{dashboardStats.total}</p>
                     </div>
-                    <div className="inventory-stat">
-                      <p className="stat-label">Active</p>
-                      <p className="stat-value" style={{ color: 'var(--accent-green)' }}>{dashboardStats.active}</p>
+                    <div className="glass-card-modern p-4">
+                      <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color: 'var(--text-tertiary)' }}>Active</p>
+                      <p className="text-2xl font-black" style={{ color: 'var(--accent-green)' }}>{dashboardStats.active}</p>
                     </div>
-                    <div className="inventory-stat">
-                      <p className="stat-label">Maintenance</p>
-                      <p className="stat-value" style={{ color: 'var(--accent-orange)' }}>{dashboardStats.maintenance}</p>
+                    <div className="glass-card-modern p-4">
+                      <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color: 'var(--text-tertiary)' }}>Maintenance</p>
+                      <p className="text-2xl font-black" style={{ color: 'var(--accent-orange)' }}>{dashboardStats.maintenance}</p>
                     </div>
-                    <div className="inventory-stat">
-                      <p className="stat-label">Retired</p>
-                      <p className="stat-value" style={{ color: 'var(--accent-red)' }}>{dashboardStats.retired}</p>
+                    <div className="glass-card-modern p-4">
+                      <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color: 'var(--text-tertiary)' }}>Retired</p>
+                      <p className="text-2xl font-black" style={{ color: 'var(--accent-red)' }}>{dashboardStats.retired}</p>
                     </div>
                   </div>
                 </div>
-                <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
-                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 bg-[var(--bg-glass-light)] p-4 rounded-[24px] border border-[var(--border-glass)] shadow-[0_16px_50px_rgba(0,0,0,0.08)]">
+                <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-end">
+                  <div className="flex-1 grid gap-3 sm:grid-cols-3">
                     <input
                       type="file"
                       ref={fileInputRef}
@@ -1655,26 +1655,23 @@ function App() {
                       accept=".csv,.xlsx,.xls"
                       className="hidden"
                     />
-                    <Button variant="secondary" className="w-full h-12 px-5 gap-2 sm:w-auto" onClick={downloadTemplate}>
+                    <Button variant="secondary" className="w-full h-12 px-4 gap-2" onClick={downloadTemplate}>
                       <FileDown size={26} strokeWidth={2} />
                       Download Template
                     </Button>
-                    <Button variant="secondary" className="w-full h-12 px-5 gap-2 sm:w-auto" onClick={() => fileInputRef.current?.click()}>
+                    <Button variant="secondary" className="w-full h-12 px-4 gap-2" onClick={() => fileInputRef.current?.click()}>
                       <FileUp size={26} strokeWidth={2} />
                       Import
                     </Button>
-                    <Button variant="secondary" className="w-full h-12 px-5 gap-2 sm:w-auto" onClick={exportCSV}>
+                    <Button variant="secondary" className="w-full h-12 px-4 gap-2" onClick={exportCSV}>
                       <FileDown size={26} strokeWidth={2} />
                       Export Excel
                     </Button>
-                    {/* PDF export temporarily disabled due to deployment issues */}
                   </div>
-                  <div className="flex justify-end lg:justify-end">
-                    <Button variant="primary" className="h-12 px-6 gap-2 shadow-[0_12px_24px_rgba(99,102,241,0.25)]" onClick={handleAddEquipment}>
-                      <Plus size={20} strokeWidth={2.5} />
-                      Add Asset
-                    </Button>
-                  </div>
+                  <Button variant="primary" className="w-full sm:w-auto h-12 px-6 gap-2 shadow-[0_12px_24px_rgba(99,102,241,0.25)]" onClick={handleAddEquipment}>
+                    <Plus size={20} strokeWidth={2.5} />
+                    Add Asset
+                  </Button>
                 </div>
               </div>
 
