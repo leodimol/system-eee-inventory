@@ -97,8 +97,6 @@ const AddAssetModal = ({ isOpen, onClose, asset = null, onSaved, authUser }) => 
     volume_capacity: '',
     finish: '',
     serial_id: '',
-    condition: '',
-    status: '',
     notes: '',
     // Office specific fields
     office_type: '',
@@ -178,8 +176,6 @@ const AddAssetModal = ({ isOpen, onClose, asset = null, onSaved, authUser }) => 
           volume_capacity: asset.volume_capacity || '',
           finish: asset.finish || '',
           serial_id: asset.serial_id || '',
-          condition: asset.condition || '',
-          status: asset.status || '',
           notes: asset.notes || '',
           // Office specific fields
           office_type: asset.office_type || '',

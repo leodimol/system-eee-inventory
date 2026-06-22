@@ -1,9 +1,29 @@
  import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { supabase } from './lib/supabase';
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import {
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Radar,
+  LineChart,
+  Line
+} from 'recharts';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import ExcelJS from 'exceljs';
 import {
   LayoutDashboard,
   Laptop,
@@ -59,33 +79,11 @@ import {
   Package
 } from 'lucide-react';
 import LoadingScreen from './components/LoadingScreen';
-import { 
-  RadarChart, 
-  PolarGrid, 
-  PolarAngleAxis, 
-  PolarRadiusAxis, 
-  Radar, 
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Cell,
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
-  Legend
-} from 'recharts';
 import { Button, Card, Input, Modal } from './components/ui/Base';
 import EquipmentModal from './components/AddAssetModal';
 import EquipmentHistoryModal from './components/AssetHistoryModal';
 import { useEquipment, useEquipmentStats, useHubs } from './hooks/useData';
 import { useTheme, themes } from './context/ThemeContext';
-import * as XLSX from 'xlsx';
-import ExcelJS from 'exceljs';
 import { checkDuplicates } from './utils/duplicateCheck';
 import AnalyticsDashboard from './components/AnalyticsDashboard';
 import Toast from './components/ui/Toast';
