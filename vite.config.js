@@ -3,6 +3,15 @@ import { defineConfig } from 'vite'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()], server: { host: true, port: 5173, strictPort: true },
+  plugins: [react()],
+  server: { host: true, port: 5173, strictPort: true },
+  build: {
+    rollupOptions: {
+      external: ['jspdf', 'jspdf-autotable'],
+      onwarn(warning, warn) {
+        if (warning.code === 'MODULE_NOT_FOUND') return;
+        warn(warning);
+      }
+    }
+  }
 })
-
