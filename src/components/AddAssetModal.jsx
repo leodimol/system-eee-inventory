@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { X, ArrowLeft, ArrowRight } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { checkDuplicates } from '../utils/duplicateCheck';
+import { logAudit } from '../utils/auditLog';
 import Toast from './ui/Toast';
 
-const AddAssetModal = ({ isOpen, onClose, asset = null, onSaved }) => {
+const AddAssetModal = ({ isOpen, onClose, asset = null, onSaved, authUser }) => {
   const isEditMode = Boolean(asset?.id);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
@@ -501,6 +502,15 @@ const AddAssetModal = ({ isOpen, onClose, asset = null, onSaved }) => {
         if (error) throw error;
         savedAsset = data;
       }
+
+      // Log audit entry
+      await logAudit({
+        equipmentId: savedAsset.id,
+        action: isEditMode ? 'UPDATE' : 'CREATE',
+        oldValues: isEditMode ? asset : null,
+        newValues: savedAsset,
+        changedBy: formData.added_by || authUser?.email || 'system'
+      });
 
       if (onSaved) onSaved(savedAsset);
       onClose();

@@ -2535,8 +2535,9 @@ function App() {
           setIsModalOpen(false);
           setEditingEquipment(null);
         }}
-        equipment={editingEquipment}
-        onSave={handleSaveEquipment}
+        asset={editingEquipment}
+        onSaved={handleSaveEquipment}
+        authUser={authUser}
       />
       
       <EquipmentHistoryModal
