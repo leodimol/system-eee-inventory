@@ -550,6 +550,7 @@ const AddAssetModal = ({ isOpen, onClose, asset = null, onSaved, authUser }) => 
         console.error('Audit log failed:', auditErr);
       }
 
+      console.log('Asset saved successfully, showing success toast');
       // Show success message immediately after successful save
       setToast({
         message: isEditMode ? 'Equipment updated successfully! Changes have been saved.' : 'Equipment added successfully! You can now view it in the inventory.',
@@ -558,6 +559,7 @@ const AddAssetModal = ({ isOpen, onClose, asset = null, onSaved, authUser }) => 
 
       // Close modal and reset form (don't fail if these error)
       try {
+        console.log('Starting cleanup operations');
         if (onSaved) onSaved(savedAsset);
         onClose();
         setCurrentStep(1);
@@ -565,6 +567,7 @@ const AddAssetModal = ({ isOpen, onClose, asset = null, onSaved, authUser }) => 
         setSelectedLogisticsType('');
         setSelectedOfficeType('');
         setFormData(emptyForm);
+        console.log('Cleanup completed');
       } catch (cleanupErr) {
         console.error('Cleanup failed:', cleanupErr);
       }
@@ -576,6 +579,7 @@ const AddAssetModal = ({ isOpen, onClose, asset = null, onSaved, authUser }) => 
         type: 'error'
       });
     } finally {
+      console.log('Setting loading to false');
       setLoading(false);
     }
   };
