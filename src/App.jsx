@@ -2349,6 +2349,7 @@ function App() {
         asset={editingEquipment}
         onSaved={null}
         authUser={authUser}
+        onToast={setToast}
       />
       
       <EquipmentHistoryModal

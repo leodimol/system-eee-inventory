@@ -6,7 +6,7 @@ import { logAudit } from '../utils/auditLog';
 import Toast from './ui/Toast';
 import ConfirmDialog from './ui/ConfirmDialog';
 
-const AddAssetModal = ({ isOpen, onClose, asset = null, onSaved, authUser }) => {
+const AddAssetModal = ({ isOpen, onClose, asset = null, onSaved, authUser, onToast }) => {
   const isEditMode = Boolean(asset?.id);
   const isRetired = asset?.status === 'retired';
   const [loading, setLoading] = useState(false);
@@ -552,10 +552,17 @@ const AddAssetModal = ({ isOpen, onClose, asset = null, onSaved, authUser }) => 
 
       console.log('Asset saved successfully, showing success toast');
       // Show success message immediately after successful save
-      setToast({
-        message: isEditMode ? 'Equipment updated successfully! Changes have been saved.' : 'Equipment added successfully! You can now view it in the inventory.',
-        type: 'success'
-      });
+      if (onToast) {
+        onToast({
+          message: isEditMode ? 'Equipment updated successfully! Changes have been saved.' : 'Equipment added successfully! You can now view it in the inventory.',
+          type: 'success'
+        });
+      } else {
+        setToast({
+          message: isEditMode ? 'Equipment updated successfully! Changes have been saved.' : 'Equipment added successfully! You can now view it in the inventory.',
+          type: 'success'
+        });
+      }
 
       // Close modal and reset form (don't fail if these error)
       try {
