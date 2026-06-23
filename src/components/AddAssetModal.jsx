@@ -504,6 +504,9 @@ const AddAssetModal = ({ isOpen, onClose, asset = null, onSaved, authUser }) => 
         ...(isEditMode ? { updated_at: new Date().toISOString() } : { created_at: new Date().toISOString() })
       };
 
+      console.log('Payload being sent:', payload);
+      console.log('Is edit mode:', isEditMode);
+
       // Prevent saving retired assets
       if (isRetired) {
         setToast({
