@@ -16,18 +16,22 @@ export const checkDuplicates = async ({ serial, assetTag, excludeId = null }) =>
   };
 
   try {
-    // Check serial number
+    console.log('Checking duplicates with:', { serial, assetTag, excludeId });
+
+    // Check serial number (exact match, only if provided)
     if (serial && serial.trim()) {
       let query = supabase
         .from('equipment')
         .select('id, model, asset_tag, serial, status')
-        .ilike('serial', serial.trim());
-      
+        .eq('serial', serial.trim());
+
       if (excludeId) {
         query = query.neq('id', excludeId);
       }
 
       const { data: serialDups, error: serialError } = await query;
+
+      console.log('Serial check result:', { serialDups, serialError });
 
       if (serialError) {
         console.error('Error checking serial duplicates:', serialError);
@@ -51,6 +55,8 @@ export const checkDuplicates = async ({ serial, assetTag, excludeId = null }) =>
 
       const { data: assetDups, error: assetError } = await query;
 
+      console.log('Asset tag check result:', { assetDups, assetError });
+
       if (assetError) {
         console.error('Error checking asset tag duplicates:', assetError);
       } else if (assetDups && assetDups.length > 0) {
@@ -67,6 +73,7 @@ export const checkDuplicates = async ({ serial, assetTag, excludeId = null }) =>
       }
     }
 
+    console.log('Final duplicate check result:', result);
     return result;
   } catch (err) {
     console.error('Duplicate check error:', err);
