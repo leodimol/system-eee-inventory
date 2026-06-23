@@ -31,7 +31,7 @@ export const checkDuplicates = async ({ serial, assetTag, excludeId = null }) =>
 
       const { data: serialDups, error: serialError } = await query;
 
-      console.log('Serial check result:', { serialDups, serialError });
+      console.log('Serial check result:', { serial, serialDups, serialError });
 
       if (serialError) {
         console.error('Error checking serial duplicates:', serialError);
@@ -55,7 +55,7 @@ export const checkDuplicates = async ({ serial, assetTag, excludeId = null }) =>
 
       const { data: assetDups, error: assetError } = await query;
 
-      console.log('Asset tag check result:', { assetDups, assetError });
+      console.log('Asset tag check result:', { assetTag, assetDups, assetError });
 
       if (assetError) {
         console.error('Error checking asset tag duplicates:', assetError);

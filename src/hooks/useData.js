@@ -213,7 +213,8 @@ export function useEquipmentStats(hubId) {
       // Build base query with count
       let countQuery = supabase.from('equipment').select('*', { count: 'exact', head: true });
       if (hubId && hubId !== 'all') {
-        countQuery = countQuery.eq('hub', hubId);
+        // Skip hub filter since hub column doesn't exist in database
+        console.warn('Hub filter requested but hub column does not exist in database');
       }
 
       // Get total count first
@@ -221,9 +222,10 @@ export function useEquipmentStats(hubId) {
       if (countError) throw countError;
 
       // Get data for detailed stats (only fetch needed columns)
-      let dataQuery = supabase.from('equipment').select('equipment_type, status, condition, assigned_to, hub');
+      let dataQuery = supabase.from('equipment').select('equipment_type, status, condition, assigned_to');
       if (hubId && hubId !== 'all') {
-        dataQuery = dataQuery.eq('hub', hubId);
+        // Skip hub filter since hub column doesn't exist
+        console.warn('Hub filter requested but hub column does not exist in database');
       }
 
       const { data, error } = await dataQuery;
@@ -295,10 +297,10 @@ export function useEquipmentStats(hubId) {
           counts.unassigned++;
         }
 
-        // Count by hub
-        if (item.hub) {
-          counts.hubCounts[item.hub] = (counts.hubCounts[item.hub] || 0) + 1;
-        }
+        // Count by hub (skip since hub column doesn't exist)
+        // if (item.hub) {
+        //   counts.hubCounts[item.hub] = (counts.hubCounts[item.hub] || 0) + 1;
+        // }
       });
 
       setStats(counts);
