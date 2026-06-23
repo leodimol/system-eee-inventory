@@ -1656,7 +1656,7 @@ function App() {
                       className="hidden"
                     />
                     <Button variant="secondary" className="w-full h-12 px-4 gap-2 flex items-center justify-center" onClick={downloadTemplate}>
-                      <FileDown size={28} strokeWidth={2} />
+                      <FileDown size={48} strokeWidth={2} />
                       Download Template
                     </Button>
                     <Button variant="secondary" className="w-full h-12 px-4 gap-2 flex items-center justify-center" onClick={() => fileInputRef.current?.click()}>
