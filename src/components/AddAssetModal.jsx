@@ -588,30 +588,7 @@ const AddAssetModal = ({ isOpen, onClose, asset = null, onSaved, authUser }) => 
     setLoading(true);
 
     try {
-      // Check for duplicates
-      const duplicateCheck = await checkDuplicates({
-        serial: formData.serial,
-        assetTag: formData.asset_tag,
-        excludeId: asset?.id
-      });
-
-      console.log('Duplicate check result:', duplicateCheck);
-
-      if (duplicateCheck.hasDuplicates) {
-        setConfirmDialog({
-          isOpen: true,
-          title: 'Duplicate Detected',
-          message: `${duplicateCheck.messages.join('\n')}\n\nExisting assets:\n${duplicateCheck.duplicates.map(d =>
-            `- ${d.model || 'Unknown'} (${d.asset_tag || 'No Tag'}) - ${d.status || 'Unknown'}`
-          ).join('\n')}\n\nDo you want to continue saving?`,
-          type: 'warning',
-          onConfirm: saveAsset
-        });
-        setLoading(false);
-        return;
-      }
-
-      // No duplicates, proceed with save
+      // Proceed with save - duplicate checking is done in real-time
       await saveAsset();
     } catch (err) {
       console.error('Error in handleSubmit:', err);
