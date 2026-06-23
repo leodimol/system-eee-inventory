@@ -794,36 +794,7 @@ function App() {
         return;
       }
 
-      // Check for duplicates
-      const duplicateCheck = await checkDuplicates({
-        serial: formData.serial,
-        assetTag: formData.asset_tag,
-        excludeId: editingEquipment?.id
-      });
-
-      if (duplicateCheck.hasDuplicates) {
-        setConfirmDialog({
-          isOpen: true,
-          title: 'Duplicate Detected',
-          message: `${duplicateCheck.messages.join('\n')}\n\nExisting equipment:\n${duplicateCheck.duplicates.map(d =>
-            `- ${d.model} (${d.asset_tag || 'No Tag'}) - ${d.status}`
-          ).join('\n')}\n\nDo you want to continue saving?`,
-          type: 'warning',
-          onConfirm: async () => {
-            if (editingEquipment) {
-              await updateEquipment(editingEquipment.id, formData, 'system');
-              setToast({ message: 'Equipment updated successfully', type: 'success' });
-            } else {
-              await addEquipment(formData, 'system');
-              setToast({ message: 'Equipment added successfully', type: 'success' });
-            }
-            setIsModalOpen(false);
-            setEditingEquipment(null);
-          }
-        });
-        return;
-      }
-
+      // Save directly - duplicate checking is now done in real-time in AddAssetModal
       if (editingEquipment) {
         await updateEquipment(editingEquipment.id, formData, 'system');
         setToast({ message: 'Equipment updated successfully', type: 'success' });
