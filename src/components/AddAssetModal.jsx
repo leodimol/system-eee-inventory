@@ -316,6 +316,11 @@ const AddAssetModal = ({ isOpen, onClose, asset = null, onSaved, authUser }) => 
       if (!formData.quantity) validationErrors.quantity = 'Quantity is required for logistics equipment';
     }
 
+    // Clear any lingering serial errors for categories where serial is not required
+    if (selectedCategory === 'transport' || selectedCategory === 'logistics' || selectedCategory === 'office') {
+      validationErrors.serial = null;
+    }
+
     setErrors(validationErrors);
     return Object.keys(validationErrors).length === 0;
   };
