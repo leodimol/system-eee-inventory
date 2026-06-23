@@ -211,7 +211,7 @@ const AnalyticsDashboard = ({ equipment, filters, compact }) => {
   // Hub/Location Distribution
   const hubData = useMemo(() => {
     const hubCounts = filteredEquipment.reduce((acc, item) => {
-      const hub = item.hub || 'Unknown';
+      const hub = item.location || 'Unknown';
       acc[hub] = (acc[hub] || 0) + 1;
       return acc;
     }, {});
