@@ -98,7 +98,18 @@ export function useEquipment(hubId, page = 1, filters = {}, searchQuery = '', us
 
   const addEquipment = async (item, user = 'system') => {
     console.log('Adding equipment with accessories:', item.accessories);
-    const itemWithTimestamp = { ...item, updated_at: new Date().toISOString() };
+    console.log('Item being added:', item);
+
+    // Remove id field if present (should not be present for new records)
+    const itemToInsert = { ...item };
+    if (itemToInsert.id) {
+      console.warn('Removing id field from item for new record');
+      delete itemToInsert.id;
+    }
+
+    const itemWithTimestamp = { ...itemToInsert, updated_at: new Date().toISOString() };
+    console.log('Final item to insert:', itemWithTimestamp);
+
     const { data, error } = await supabase.from('equipment').insert([itemWithTimestamp]).select();
     if (error) {
       console.error('Add equipment error:', error);

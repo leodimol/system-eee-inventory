@@ -465,8 +465,15 @@ const AddAssetModal = ({ isOpen, onClose, asset = null, onSaved, authUser }) => 
         ...(isEditMode ? { updated_at: new Date().toISOString() } : { created_at: new Date().toISOString() })
       };
 
+      // Explicitly remove id field if present (should not be present for new records)
+      if (!isEditMode && payload.id) {
+        console.warn('Removing id field from payload for new record');
+        delete payload.id;
+      }
+
       console.log('Payload being sent:', payload);
       console.log('Is edit mode:', isEditMode);
+      console.log('Has id field:', !!payload.id);
 
       // Prevent saving retired assets
       if (isRetired) {
