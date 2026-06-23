@@ -40,8 +40,6 @@ import {
   Trash2,
   Database,
   AlertCircle,
-  Sun,
-  Moon,
   Monitor,
   Eye,
   Palette,
@@ -52,7 +50,6 @@ import {
   Activity,
   Clock,
   Edit3,
-  Tablet,
   TrendingUp,
   TrendingDown,
   Wrench,
@@ -66,14 +63,6 @@ import {
   CheckCircle,
   AlertTriangle,
   Info,
-  Droplets,
-  Leaf,
-  Sparkles,
-  Flame,
-  Heart,
-  Waves,
-  Star,
-  Gem,
   LogOut,
   Package
 } from 'lucide-react';
@@ -1665,7 +1654,7 @@ function App() {
                       className="hidden"
                     />
                     <Button variant="secondary" className="w-full h-12 px-4 gap-2 flex items-center justify-center" onClick={downloadTemplate}>
-                      <FileDown size={48} strokeWidth={2} />
+                      <FileDown size={28} strokeWidth={2} />
                       Download Template
                     </Button>
                     <Button variant="secondary" className="w-full h-12 px-4 gap-2 flex items-center justify-center" onClick={() => fileInputRef.current?.click()}>

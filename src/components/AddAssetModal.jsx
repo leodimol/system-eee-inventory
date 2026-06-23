@@ -4,7 +4,6 @@ import { supabase } from '../lib/supabase';
 import { checkDuplicates } from '../utils/duplicateCheck';
 import { logAudit } from '../utils/auditLog';
 import Toast from './ui/Toast';
-import ConfirmDialog from './ui/ConfirmDialog';
 
 const AddAssetModal = ({ isOpen, onClose, asset = null, onSaved, authUser, onToast }) => {
   const isEditMode = Boolean(asset?.id);
@@ -17,7 +16,6 @@ const AddAssetModal = ({ isOpen, onClose, asset = null, onSaved, authUser, onToa
   const [selectedLogisticsType, setSelectedLogisticsType] = useState('');
   const [selectedOfficeType, setSelectedOfficeType] = useState('');
   const [toast, setToast] = useState(null);
-  const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, onConfirm: null, title: '', message: '', type: 'warning' });
 
   const categories = [
     { id: 'transport', name: 'Transport Equipment', icon: '🚛' },
@@ -2588,16 +2586,6 @@ const AddAssetModal = ({ isOpen, onClose, asset = null, onSaved, authUser, onToa
           onClose={() => setToast(null)}
         />
       )}
-
-      {/* Confirm Dialog */}
-      <ConfirmDialog
-        isOpen={confirmDialog.isOpen}
-        onClose={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
-        onConfirm={confirmDialog.onConfirm}
-        title={confirmDialog.title}
-        message={confirmDialog.message}
-        type={confirmDialog.type}
-      />
     </div>
   );
 };
