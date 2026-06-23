@@ -121,6 +121,7 @@ const AddAssetModal = ({ isOpen, onClose, asset = null, onSaved, authUser }) => 
   };
 
   const [formData, setFormData] = useState(emptyForm);
+  const [duplicateWarning, setDuplicateWarning] = useState(null);
 
   const statusOptions = [
     { value: 'available', label: '✅ Available - Working, ready for assignment' },
@@ -217,6 +218,33 @@ const AddAssetModal = ({ isOpen, onClose, asset = null, onSaved, authUser }) => 
     setFormData(prev => ({ ...prev, [name]: value }));
     setErrors(prev => ({ ...prev, [name]: null }));
   };
+
+  // Real-time duplicate checking
+  useEffect(() => {
+    const checkForDuplicates = async () => {
+      if (!isEditMode && (formData.asset_tag || formData.serial)) {
+        const duplicateCheck = await checkDuplicates({
+          serial: formData.serial,
+          assetTag: formData.asset_tag,
+          excludeId: asset?.id
+        });
+
+        if (duplicateCheck.hasDuplicates) {
+          setDuplicateWarning({
+            messages: duplicateCheck.messages,
+            duplicates: duplicateCheck.duplicates
+          });
+        } else {
+          setDuplicateWarning(null);
+        }
+      } else {
+        setDuplicateWarning(null);
+      }
+    };
+
+    const debounceTimer = setTimeout(checkForDuplicates, 500);
+    return () => clearTimeout(debounceTimer);
+  }, [formData.asset_tag, formData.serial, isEditMode, asset?.id]);
 
   const handleCategorySelect = (category) => {
     setSelectedCategory(category);
@@ -2141,6 +2169,19 @@ const AddAssetModal = ({ isOpen, onClose, asset = null, onSaved, authUser }) => 
         />
         <p className="form-hint">Unique identifier for the asset (required)</p>
         {errors.asset_tag && <p className="error-text">{errors.asset_tag}</p>}
+        {duplicateWarning && (
+          <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+            <p className="text-sm font-medium text-yellow-800">
+              {duplicateWarning.messages.join('\n')}
+            </p>
+            <p className="text-xs text-yellow-700 mt-1">
+              Existing equipment:
+              {duplicateWarning.duplicates.map(d =>
+                `- ${d.model} (${d.asset_tag || 'No Tag'}) - ${d.status}`
+              ).join('\n')}
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Category-specific fields */}
