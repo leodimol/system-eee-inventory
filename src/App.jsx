@@ -2028,6 +2028,7 @@ function App() {
                           <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Status</th>
                           <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Purchase Date</th>
                           <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Warranty</th>
+                          <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Description</th>
                           <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Updated By</th>
                           <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Updated</th>
                           <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', letterSpacing: '0.1em', fontWeight: '800' }}>Action</th>
@@ -2236,6 +2237,9 @@ function App() {
                                       </span>
                                     );
                                   })()}
+                                </td>
+                                <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]" style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={item.notes || ''}>
+                                  {item.notes || <span style={{ color: 'var(--text-tertiary)', fontStyle: 'italic' }}>—</span>}
                                 </td>
                                 <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
                                   {item.added_by || <span style={{ color: 'var(--text-tertiary)', fontStyle: 'italic' }}>Unknown</span>}
