@@ -515,19 +515,31 @@ function App() {
     setAuthError('');
     setAuthLoading(true);
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: loginEmail,
-      password: loginPassword,
-    });
+    console.log('Attempting login with email:', loginEmail);
 
-    if (error) {
-      setAuthError(error.message);
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: loginEmail,
+        password: loginPassword,
+      });
+
+      console.log('Login response:', { data, error });
+
+      if (error) {
+        console.error('Login error:', error);
+        setAuthError(error.message);
+        setAuthLoading(false);
+        return;
+      }
+
+      setAuthUser(data.user ?? null);
       setAuthLoading(false);
-      return;
+      console.log('Login successful');
+    } catch (err) {
+      console.error('Login failed with exception:', err);
+      setAuthError('Login failed: ' + err.message);
+      setAuthLoading(false);
     }
-
-    setAuthUser(data.user ?? null);
-    setAuthLoading(false);
   };
 
   const handleLogout = async () => {
