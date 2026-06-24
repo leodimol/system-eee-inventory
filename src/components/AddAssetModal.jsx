@@ -199,10 +199,10 @@ const AddAssetModal = ({ isOpen, onClose, asset = null, onSaved, authUser, onToa
           office_cut_type: asset.office_cut_type || '',
           office_notes: asset.office_notes || ''
         });
-        setSelectedCategory(asset.category || '');
+        setSelectedCategory(asset.category || asset.equipment_type || '');
         setSelectedLogisticsType(asset.logistics_type || '');
         setSelectedOfficeType(asset.office_type || '');
-        setCurrentStep(asset.category === 'logistics' && asset.logistics_type ? 3 : asset.category === 'office' && asset.office_type ? 3 : 2);
+        setCurrentStep((asset.category || asset.equipment_type) === 'logistics' && asset.logistics_type ? 3 : (asset.category || asset.equipment_type) === 'office' && asset.office_type ? 3 : 2);
       } else {
         setFormData(emptyForm);
         setSelectedCategory('');
