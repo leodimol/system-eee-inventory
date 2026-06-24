@@ -2101,7 +2101,93 @@ const AddAssetModal = ({ isOpen, onClose, asset = null, onSaved, authUser, onToa
         );
 
       default:
-        return null;
+        return (
+          <>
+            <div className="form-group">
+              <label className="form-label">Equipment Type</label>
+              <input
+                type="text"
+                name="type"
+                value={formData.type}
+                onChange={handleChange}
+                className="form-input"
+                placeholder="e.g. Generator, Pump, etc."
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Specifications</label>
+              <textarea
+                name="specs"
+                value={formData.specs}
+                onChange={handleChange}
+                className="form-textarea"
+                rows="2"
+                placeholder="Technical specifications"
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Quantity</label>
+              <input
+                type="text"
+                name="quantity"
+                value={formData.quantity}
+                onChange={handleChange}
+                className="form-input"
+                placeholder="Number of units"
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Material</label>
+              <input
+                type="text"
+                name="material"
+                value={formData.material}
+                onChange={handleChange}
+                className="form-input"
+                placeholder="e.g. Steel, Plastic, etc."
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Dimensions</label>
+              <input
+                type="text"
+                name="dimensions"
+                value={formData.dimensions}
+                onChange={handleChange}
+                className="form-input"
+                placeholder="e.g. 10x20x30 cm"
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Capacity</label>
+              <input
+                type="text"
+                name="capacity"
+                value={formData.capacity}
+                onChange={handleChange}
+                className="form-input"
+                placeholder="e.g. 500 kg, 100 liters"
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Features</label>
+              <textarea
+                name="features"
+                value={formData.features}
+                onChange={handleChange}
+                className="form-textarea"
+                rows="2"
+                placeholder="Key features or capabilities"
+              />
+            </div>
+          </>
+        );
     }
   };
 
