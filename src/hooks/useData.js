@@ -235,8 +235,6 @@ export function useEquipmentStats(hubId) {
       const { count, error: countError } = await countQuery;
       if (countError) throw countError;
 
-      console.log('useEquipmentStats - Total count from DB:', count, 'for hubId:', hubId);
-
       // Get data for detailed stats (only fetch needed columns)
       let dataQuery = supabase.from('equipment').select('equipment_type, status, condition, assigned_to');
       if (hubId && hubId !== 'all') {
@@ -249,8 +247,6 @@ export function useEquipmentStats(hubId) {
         console.error('Stats data fetch error:', error);
         throw error;
       }
-
-      console.log('useEquipmentStats - Fetched data length:', data?.length);
 
       // Calculate stats from data
       const counts = {
@@ -303,8 +299,6 @@ export function useEquipmentStats(hubId) {
         else if (status === 'damaged') counts.damaged++;
         else if (status === 'retired') counts.retired++;
         else if (status === 'pending_disposal' || status === 'pending disposal') counts.pending_disposal++;
-
-        console.log('Item status:', item.status, 'Status:', status);
 
         // Count by condition
         const condition = (item.condition || '').toLowerCase();
