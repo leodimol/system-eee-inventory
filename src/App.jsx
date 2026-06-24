@@ -568,6 +568,18 @@ function App() {
       const matchesCategory = !filters.category ||
         itemCategory === filters.category.toLowerCase() ||
         (filters.category === 'office' && officeTypes.includes(itemCategory));
+
+      if (filters.category === 'office') {
+        console.log('Office filter check:', {
+          itemCategory,
+          equipment_type: item.equipment_type,
+          category: item.category,
+          type: item.type,
+          matchesCategory,
+          officeTypes
+        });
+      }
+
       const matchesSubCategory = !filters.subCategory ||
         (filters.category === 'logistics' && item.logistics_type === filters.subCategory) ||
         (filters.category === 'office' && item.office_type === filters.subCategory);
