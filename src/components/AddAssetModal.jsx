@@ -302,8 +302,8 @@ const AddAssetModal = ({ isOpen, onClose, asset = null, onSaved, authUser, onToa
     console.log('Validating form with category:', selectedCategory);
 
     if (!formData.category) validationErrors.category = 'Category is required';
-    // Brand and Model are not required for logistics and office
-    if (selectedCategory !== 'logistics' && selectedCategory !== 'office') {
+    // Brand and Model are not required for logistics, office, and other categories
+    if (selectedCategory !== 'logistics' && selectedCategory !== 'office' && selectedCategory !== 'other') {
       if (!formData.brand) validationErrors.brand = 'Brand is required';
       if (!formData.model) validationErrors.model = 'Model is required';
     }
@@ -360,7 +360,7 @@ const AddAssetModal = ({ isOpen, onClose, asset = null, onSaved, authUser, onToa
     }
 
     // Clear any lingering serial errors for categories where serial is not required
-    if (selectedCategory === 'transport' || selectedCategory === 'logistics' || selectedCategory === 'office') {
+    if (selectedCategory === 'transport' || selectedCategory === 'logistics' || selectedCategory === 'office' || selectedCategory === 'other') {
       delete validationErrors.serial;
     }
 
