@@ -284,7 +284,7 @@ export function useEquipmentStats(hubId) {
         // Count by status
         const status = (item.status || '').toLowerCase();
         if (status === 'available') counts.available++;
-        else if (status === 'active') counts.active++;
+        else if (status === 'active' || status === 'idle') counts.active++; // Map idle to active for display
         else if (status === 'reserved') counts.reserved++;
         else if (status === 'loaned') counts.loaned++;
         else if (status === 'in_transit' || status === 'in transit') counts.in_transit++;

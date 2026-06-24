@@ -144,6 +144,18 @@ select::-ms-expand {
   border-color: var(--border-glass);
 }
 
+/* Date picker icon styling */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
+  filter: invert(1) brightness(1.2);
+}
+
 .asset-category-select {
   cursor: pointer;
   appearance: none;
