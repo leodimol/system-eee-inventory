@@ -287,7 +287,7 @@ export function useEquipmentStats(hubId) {
         // Count by status
         const status = (item.status || '').toLowerCase();
         if (status === 'available') counts.available++;
-        else if (status === 'active' || status === 'idle') counts.active++; // Map idle to active for display
+        else if (status === 'active' || status === 'idle' || status === 'in_use') counts.active++; // Map idle and in_use to active for display
         else if (status === 'reserved') counts.reserved++;
         else if (status === 'loaned') counts.loaned++;
         else if (status === 'in_transit' || status === 'in transit') counts.in_transit++;
@@ -296,7 +296,7 @@ export function useEquipmentStats(hubId) {
         else if (status === 'retired') counts.retired++;
         else if (status === 'pending_disposal' || status === 'pending disposal') counts.pending_disposal++;
 
-        console.log('Item status:', item.status, 'Mapped to:', status === 'idle' ? 'active' : status);
+        console.log('Item status:', item.status, 'Mapped to:', (status === 'idle' || status === 'in_use') ? 'active' : status);
 
         // Count by condition
         const condition = (item.condition || '').toLowerCase();

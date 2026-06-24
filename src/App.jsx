@@ -625,13 +625,13 @@ function App() {
 
   // Dashboard key numbers
   const dashboardStats = useMemo(() => {
-    const total = allEquipment.length;
-    const active = allEquipment.filter(item => item.status === 'available' || item.status === 'idle').length;
+    const total = totalCount; // Use totalCount from useEquipment instead of allEquipment.length
+    const active = allEquipment.filter(item => item.status === 'available' || item.status === 'idle' || item.status === 'in_use').length;
     const maintenance = allEquipment.filter(item => item.status === 'maintenance').length;
     const retired = allEquipment.filter(item => item.status === 'retired').length;
-    
+
     return { total, active, maintenance, retired };
-  }, [allEquipment]);
+  }, [allEquipment, totalCount]);
 
   // Chart data calculations
   const categoryData = useMemo(() => {
