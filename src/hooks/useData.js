@@ -293,6 +293,8 @@ export function useEquipmentStats(hubId) {
         else if (status === 'retired') counts.retired++;
         else if (status === 'pending_disposal' || status === 'pending disposal') counts.pending_disposal++;
 
+        console.log('Item status:', item.status, 'Mapped to:', status === 'idle' ? 'active' : status);
+
         // Count by condition
         const condition = (item.condition || '').toLowerCase();
         if (condition === 'new') counts.new++;
