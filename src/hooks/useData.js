@@ -200,6 +200,8 @@ export function useEquipmentStats(hubId) {
     accessories: 0,
     available: 0,
     active: 0,
+    idle: 0,
+    in_use: 0,
     reserved: 0,
     loaned: 0,
     in_transit: 0,
@@ -259,6 +261,8 @@ export function useEquipmentStats(hubId) {
         accessories: 0,
         available: 0,
         active: 0,
+        idle: 0,
+        in_use: 0,
         reserved: 0,
         loaned: 0,
         in_transit: 0,
@@ -287,7 +291,9 @@ export function useEquipmentStats(hubId) {
         // Count by status
         const status = (item.status || '').toLowerCase();
         if (status === 'available') counts.available++;
-        else if (status === 'active' || status === 'idle' || status === 'in_use') counts.active++; // Map idle and in_use to active for display
+        else if (status === 'active' || status === 'assigned') counts.active++;
+        else if (status === 'idle') counts.idle++;
+        else if (status === 'in_use') counts.in_use++;
         else if (status === 'reserved') counts.reserved++;
         else if (status === 'loaned') counts.loaned++;
         else if (status === 'in_transit' || status === 'in transit') counts.in_transit++;
@@ -296,7 +302,7 @@ export function useEquipmentStats(hubId) {
         else if (status === 'retired') counts.retired++;
         else if (status === 'pending_disposal' || status === 'pending disposal') counts.pending_disposal++;
 
-        console.log('Item status:', item.status, 'Mapped to:', (status === 'idle' || status === 'in_use') ? 'active' : status);
+        console.log('Item status:', item.status, 'Status:', status);
 
         // Count by condition
         const condition = (item.condition || '').toLowerCase();

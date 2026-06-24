@@ -623,24 +623,19 @@ function App() {
     });
   }, [allEquipment, filters, searchQuery]);
 
-  // Dashboard key numbers
+  // Dashboard key numbers - use stats from useEquipmentStats which fetches all data
   const dashboardStats = useMemo(() => {
-    const total = totalCount; // Use totalCount from useEquipment instead of allEquipment.length
-    const available = allEquipment.filter(item => item.status === 'available').length;
-    const idle = allEquipment.filter(item => item.status === 'idle').length;
-    const inUse = allEquipment.filter(item => item.status === 'in_use').length;
-    const maintenance = allEquipment.filter(item => item.status === 'maintenance').length;
-    const retired = allEquipment.filter(item => item.status === 'retired').length;
+    const total = stats.total || totalCount;
+    const available = stats.available || 0;
+    const idle = stats.idle || 0;
+    const inUse = stats.in_use || 0;
+    const maintenance = stats.maintenance || 0;
+    const retired = stats.retired || 0;
 
-    // Debug: log all statuses found
-    const allStatuses = allEquipment.map(item => item.status);
-    console.log('All statuses in allEquipment:', allStatuses);
-    console.log('Unique statuses:', [...new Set(allStatuses)]);
-    console.log('Idle count:', idle, 'Available count:', available, 'In Use count:', inUse);
-    console.log('Total items in allEquipment:', allEquipment.length, 'totalCount:', totalCount);
+    console.log('Dashboard stats from useEquipmentStats:', { total, available, idle, inUse, maintenance, retired });
 
     return { total, available, idle, inUse, maintenance, retired };
-  }, [allEquipment, totalCount]);
+  }, [stats, totalCount]);
 
   // Chart data calculations
   const categoryData = useMemo(() => {
