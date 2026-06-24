@@ -2123,7 +2123,7 @@ const AddAssetModal = ({ isOpen, onClose, asset = null, onSaved, authUser, onToa
                 onChange={handleChange}
                 className="form-textarea"
                 rows="2"
-                placeholder="Technical specifications"
+                placeholder="Brief description or specifications"
               />
             </div>
 
@@ -2136,54 +2136,6 @@ const AddAssetModal = ({ isOpen, onClose, asset = null, onSaved, authUser, onToa
                 onChange={handleChange}
                 className="form-input"
                 placeholder="Number of units"
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Material</label>
-              <input
-                type="text"
-                name="material"
-                value={formData.material}
-                onChange={handleChange}
-                className="form-input"
-                placeholder="e.g. Steel, Plastic, etc."
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Dimensions</label>
-              <input
-                type="text"
-                name="dimensions"
-                value={formData.dimensions}
-                onChange={handleChange}
-                className="form-input"
-                placeholder="e.g. 10x20x30 cm"
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Capacity</label>
-              <input
-                type="text"
-                name="capacity"
-                value={formData.capacity}
-                onChange={handleChange}
-                className="form-input"
-                placeholder="e.g. 500 kg, 100 liters"
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Features</label>
-              <textarea
-                name="features"
-                value={formData.features}
-                onChange={handleChange}
-                className="form-textarea"
-                rows="2"
-                placeholder="Key features or capabilities"
               />
             </div>
           </>
