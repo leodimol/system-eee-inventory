@@ -8,6 +8,7 @@
  * @param {Object} params.oldValues - Previous values (for updates/deletes)
  * @param {Object} params.newValues - New values (for creates/updates)
  * @param {string} params.changedBy - Username or identifier
+ * @param {string} params.reason - Reason for the change (optional)
  * @returns {Promise<Object>} - Inserted audit log
  */
 export const logAudit = async ({
@@ -15,7 +16,8 @@ export const logAudit = async ({
   action,
   oldValues = null,
   newValues = null,
-  changedBy = 'system'
+  changedBy = 'system',
+  reason = null
 }) => {
   try {
     // Calculate field changes for updates
@@ -49,7 +51,8 @@ export const logAudit = async ({
         new_values: newValues,
         field_changes: fieldChanges,
         changed_by: changedBy,
-        changed_at: new Date().toISOString()
+        changed_at: new Date().toISOString(),
+        reason
       }])
       .select();
 
@@ -180,7 +183,8 @@ export const formatAuditLog = (log) => {
     formattedTime,
     description,
     icon,
-    color
+    color,
+    reason: log.reason
   };
 };
 
