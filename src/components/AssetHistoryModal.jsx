@@ -203,7 +203,19 @@ const AssetHistoryModal = ({ isOpen, onClose, equipmentId, equipmentData }) => {
                         <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
                           {log.description}
                         </p>
-                        
+
+                        {/* Reason for Update */}
+                        {log.reason && (
+                          <div className="mt-2 p-2 rounded-lg" style={{ background: 'var(--bg-secondary)' }}>
+                            <p className="text-xs font-semibold" style={{ color: 'var(--text-tertiary)' }}>
+                              Reason:
+                            </p>
+                            <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
+                              {log.reason}
+                            </p>
+                          </div>
+                        )}
+
                         {/* User Info with Photo */}
                         <div className="flex items-center gap-2 mt-2 text-xs" style={{ color: 'var(--text-tertiary)' }}>
                           <User size={12} />
