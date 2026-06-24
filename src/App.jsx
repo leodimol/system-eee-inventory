@@ -635,7 +635,9 @@ function App() {
     // Debug: log all statuses found
     const allStatuses = allEquipment.map(item => item.status);
     console.log('All statuses in allEquipment:', allStatuses);
+    console.log('Unique statuses:', [...new Set(allStatuses)]);
     console.log('Idle count:', idle, 'Available count:', available, 'In Use count:', inUse);
+    console.log('Total items in allEquipment:', allEquipment.length, 'totalCount:', totalCount);
 
     return { total, available, idle, inUse, maintenance, retired };
   }, [allEquipment, totalCount]);
