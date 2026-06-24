@@ -140,7 +140,7 @@ const AddAssetModal = ({ isOpen, onClose, asset = null, onSaved, authUser, onToa
     if (isOpen) {
       if (isEditMode && asset) {
         setFormData({
-          category: asset.category || '',
+          category: asset.category || asset.equipment_type || '',
           brand: asset.brand || '',
           model: asset.model || '',
           asset_tag: asset.asset_tag || '',
@@ -149,6 +149,8 @@ const AddAssetModal = ({ isOpen, onClose, asset = null, onSaved, authUser, onToa
           assigned_to: asset.assigned_to || '',
           added_by: asset.added_by || '',
           idle_release: asset.idle_release || '',
+          released_by: asset.released_by || '',
+          release_datetime: asset.release_datetime || '',
           status: asset.status || 'available',
           condition: asset.condition || 'new',
           last_service: asset.last_service ? asset.last_service.split('T')[0] : new Date().toISOString().split('T')[0],
