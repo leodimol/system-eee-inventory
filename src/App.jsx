@@ -2261,10 +2261,10 @@ function App() {
                                     >
                                       <History size={12} />
                                     </button>
-                                    <button 
+                                    <button
                                       className="p-1 border border-[var(--border-color)] rounded text-[var(--text-tertiary)] hover:bg-[var(--bg-blue)] hover:border-[var(--border-blue)] hover:text-[var(--text-blue)] transition-colors"
                                       title="Edit"
-                                      onClick={() => handleEditEquipment(item)}
+                                      onClick={(e) => { e.stopPropagation(); handleEditEquipment(item); }}
                                     >
                                       <Edit3 size={12} />
                                     </button>
