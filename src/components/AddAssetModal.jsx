@@ -2321,19 +2321,6 @@ const AddAssetModal = ({ isOpen, onClose, asset = null, onSaved, authUser, onToa
         />
       </div>
 
-      {/* Description - Optional for all categories */}
-      <div className="form-group">
-        <label className="form-label">Description (Optional)</label>
-        <textarea
-          name="notes"
-          value={formData.notes}
-          onChange={handleChange}
-          className="form-textarea"
-          rows="3"
-          placeholder="Additional details about the equipment"
-        />
-      </div>
-
       {/* Added By */}
       <div className="form-group">
         <label className="form-label">Added By *</label>
