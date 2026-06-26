@@ -628,12 +628,11 @@ function App() {
     const total = stats.total;
     const available = stats.available || 0;
     const idle = stats.idle || 0;
-    const waitingToRelease = stats.waiting_to_release || 0;
     const inUse = stats.in_use || 0;
     const maintenance = stats.maintenance || 0;
     const retired = stats.retired || 0;
 
-    return { total, available, idle, waitingToRelease, inUse, maintenance, retired };
+    return { total, available, idle, inUse, maintenance, retired };
   }, [stats]);
 
   // Chart data calculations
@@ -1641,7 +1640,7 @@ function App() {
                     Global tracking across {hubs.length} active logistics hubs.
                   </p>
 
-                  <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                  <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
                     <div className="bg-[var(--bg-secondary)] border border-[var(--border-glass)] rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.1)', minHeight: '80px' }}>
                       <p className="text-[10px] font-bold uppercase tracking-normal whitespace-normal break-words" style={{ color: 'var(--text-tertiary)' }}>Total Assets</p>
                       <p className="text-2xl font-black" style={{ color: 'var(--text-primary)' }}>{dashboardStats.total}</p>
@@ -1653,10 +1652,6 @@ function App() {
                     <div className="bg-[var(--bg-secondary)] border border-[var(--border-glass)] rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.1)', minHeight: '80px' }}>
                       <p className="text-[10px] font-bold uppercase tracking-normal whitespace-normal break-words" style={{ color: 'var(--text-tertiary)' }}>Idle</p>
                       <p className="text-2xl font-black" style={{ color: 'var(--accent-secondary)' }}>{dashboardStats.idle}</p>
-                    </div>
-                    <div className="bg-[var(--bg-secondary)] border border-[var(--border-glass)] rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.1)', minHeight: '80px' }}>
-                      <p className="text-[10px] font-bold uppercase tracking-normal whitespace-normal break-words" style={{ color: 'var(--text-tertiary)' }}>Waiting to Release</p>
-                      <p className="text-2xl font-black" style={{ color: 'var(--accent-purple)' }}>{dashboardStats.waitingToRelease}</p>
                     </div>
                     <div className="bg-[var(--bg-secondary)] border border-[var(--border-glass)] rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.1)', minHeight: '80px' }}>
                       <p className="text-[10px] font-bold uppercase tracking-normal whitespace-normal break-words" style={{ color: 'var(--text-tertiary)' }}>In Use</p>
