@@ -1677,15 +1677,21 @@ function App() {
                       className="hidden"
                     />
                     <Button variant="secondary" className="w-full h-12 px-3 gap-2 flex items-center justify-center text-sm" onClick={downloadTemplate}>
-                      <FileDown size={20} strokeWidth={2.5} />
+                      <div className="w-5 h-5 flex items-center justify-center">
+                        <FileDown size={20} strokeWidth={2.5} />
+                      </div>
                       <span>Download Template</span>
                     </Button>
                     <Button variant="secondary" className="w-full h-12 px-3 gap-2 flex items-center justify-center text-sm" onClick={() => fileInputRef.current?.click()}>
-                      <FileUp size={20} strokeWidth={2.5} />
+                      <div className="w-5 h-5 flex items-center justify-center">
+                        <FileUp size={20} strokeWidth={2.5} />
+                      </div>
                       <span>Import</span>
                     </Button>
                     <Button variant="secondary" className="w-full h-12 px-3 gap-2 flex items-center justify-center text-sm" onClick={exportCSV}>
-                      <FileDown size={20} strokeWidth={2.5} />
+                      <div className="w-5 h-5 flex items-center justify-center">
+                        <FileDown size={20} strokeWidth={2.5} />
+                      </div>
                       <span>Export Excel</span>
                     </Button>
                   </div>
