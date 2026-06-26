@@ -123,8 +123,6 @@ const AddAssetModal = ({ isOpen, onClose, asset = null, onSaved, authUser, onToa
 
   const statusOptions = [
     { value: 'available', label: '✅ Available - Working, ready for assignment' },
-    { value: 'idle', label: '✅ Idle - Working, currently not in use' },
-    { value: 'waiting_to_release', label: '⏳ Waiting to be Released - Pending release' },
     { value: 'maintenance', label: '⚠️ Under Maintenance - Temporarily out of service' },
     { value: 'retired', label: '❌ Retired/Disposed - Permanently removed' }
   ];
