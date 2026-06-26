@@ -1676,17 +1676,17 @@ function App() {
                       accept=".csv,.xlsx,.xls"
                       className="hidden"
                     />
-                    <Button variant="secondary" className="w-full h-12 px-4 gap-2 flex items-center justify-center" onClick={downloadTemplate}>
-                      <FileDown size={24} strokeWidth={2.5} />
-                      Download Template
+                    <Button variant="secondary" className="w-full h-12 px-3 gap-2 flex items-center justify-center text-sm" onClick={downloadTemplate}>
+                      <FileDown size={20} strokeWidth={2.5} />
+                      <span>Download Template</span>
                     </Button>
-                    <Button variant="secondary" className="w-full h-12 px-4 gap-2 flex items-center justify-center" onClick={() => fileInputRef.current?.click()}>
-                      <FileUp size={24} strokeWidth={2.5} />
-                      Import
+                    <Button variant="secondary" className="w-full h-12 px-3 gap-2 flex items-center justify-center text-sm" onClick={() => fileInputRef.current?.click()}>
+                      <FileUp size={20} strokeWidth={2.5} />
+                      <span>Import</span>
                     </Button>
-                    <Button variant="secondary" className="w-full h-12 px-4 gap-2 flex items-center justify-center" onClick={exportCSV}>
-                      <FileDown size={24} strokeWidth={2.5} />
-                      Export Excel
+                    <Button variant="secondary" className="w-full h-12 px-3 gap-2 flex items-center justify-center text-sm" onClick={exportCSV}>
+                      <FileDown size={20} strokeWidth={2.5} />
+                      <span>Export Excel</span>
                     </Button>
                   </div>
                   <Button variant="primary" className="w-full sm:w-auto h-12 px-6 gap-2 shadow-[0_12px_24px_rgba(99,102,241,0.25)]" onClick={handleAddEquipment}>
