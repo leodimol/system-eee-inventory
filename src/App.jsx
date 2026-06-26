@@ -623,19 +623,19 @@ function App() {
     });
   }, [allEquipment, filters, searchQuery]);
 
-  // Dashboard key numbers - use stats from useEquipmentStats which fetches all data
+  // Dashboard key numbers - use stats from useEquipmentStats which fetches all data (independent from pagination)
   const dashboardStats = useMemo(() => {
-    const total = stats.total || totalCount;
+    const total = stats.total;
     const available = stats.available || 0;
     const idle = stats.idle || 0;
     const inUse = stats.in_use || 0;
     const maintenance = stats.maintenance || 0;
     const retired = stats.retired || 0;
 
-    console.log('Dashboard stats calculation:', { total, available, idle, inUse, maintenance, retired, statsTotal: stats.total, totalCount });
+    console.log('Dashboard stats from useEquipmentStats (independent):', { total, available, idle, inUse, maintenance, retired, statsTotal: stats.total });
 
     return { total, available, idle, inUse, maintenance, retired };
-  }, [stats, totalCount]);
+  }, [stats]);
 
   // Chart data calculations
   const categoryData = useMemo(() => {
