@@ -206,7 +206,6 @@ export function useEquipmentStats(hubId) {
     available: 0,
     active: 0,
     idle: 0,
-    waiting_to_release: 0,
     in_use: 0,
     reserved: 0,
     loaned: 0,
@@ -266,7 +265,6 @@ export function useEquipmentStats(hubId) {
         available: 0,
         active: 0,
         idle: 0,
-        waiting_to_release: 0,
         in_use: 0,
         reserved: 0,
         loaned: 0,
@@ -298,7 +296,6 @@ export function useEquipmentStats(hubId) {
         if (status === 'available') counts.available++;
         else if (status === 'active' || status === 'assigned') counts.active++;
         else if (status === 'idle') counts.idle++;
-        else if (status === 'waiting_to_release' || status === 'waiting to release') counts.waiting_to_release++;
         else if (status === 'in_use') counts.in_use++;
         else if (status === 'reserved') counts.reserved++;
         else if (status === 'loaned') counts.loaned++;
