@@ -222,16 +222,6 @@ const AnalyticsDashboard = ({ equipment, filters, compact }) => {
       color: CHART_COLORS[Object.keys(hubCounts).indexOf(name) % CHART_COLORS.length]
     })).sort((a, b) => b.value - a.value);
 
-    // Limit to top 10 locations and group the rest as "Others"
-    if (result.length > 10) {
-      const top10 = result.slice(0, 10);
-      const others = result.slice(10).reduce((sum, item) => sum + item.value, 0);
-      if (others > 0) {
-        top10.push({ name: 'Others', value: others, color: '#9ca3af' });
-      }
-      result = top10;
-    }
-
     return result;
   }, [filteredEquipment]);
 
@@ -473,32 +463,34 @@ const AnalyticsDashboard = ({ equipment, filters, compact }) => {
           {/* Hub Distribution */}
           <div className="bg-[var(--bg-glass-light)] rounded-lg p-4 border border-[var(--border-glass)]">
             <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">Location Distribution</h3>
-            <div className="h-48">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={hubData} margin={{ top: 15, right: 20, left: 15, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
-                  <XAxis
-                    dataKey="name"
-                    stroke="var(--text-tertiary)"
-                    tick={{ fill: 'var(--text-secondary)', fontSize: 10 }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    stroke="var(--text-tertiary)"
-                    tick={{ fill: 'var(--text-secondary)', fontSize: 10 }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-                    {hubData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                    <LabelList dataKey="value" position="top" fill="var(--text-primary)" fontSize={11} fontWeight="bold" />
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+            <div className="h-48 overflow-x-auto">
+              <div style={{ minWidth: `${Math.max(hubData.length * 60, 100)}%` }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={hubData} margin={{ top: 15, right: 20, left: 15, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
+                    <XAxis
+                      dataKey="name"
+                      stroke="var(--text-tertiary)"
+                      tick={{ fill: 'var(--text-secondary)', fontSize: 10 }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <YAxis
+                      stroke="var(--text-tertiary)"
+                      tick={{ fill: 'var(--text-secondary)', fontSize: 10 }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                      {hubData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                      <LabelList dataKey="value" position="top" fill="var(--text-primary)" fontSize={11} fontWeight="bold" />
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           </div>
 
