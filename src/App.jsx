@@ -1375,7 +1375,7 @@ function App() {
       </button>
 
       {/* Sidebar */}
-      <div className={`fixed left-0 top-0 h-screen z-40 transition-transform duration-300 ease-in-out lg:translate-x-0 ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+      <div className={`fixed left-0 top-0 h-screen z-[70] transition-transform duration-300 ease-in-out lg:translate-x-0 ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         <Sidebar
           activePage={activePage}
           setActivePage={setActivePage}
@@ -2078,8 +2078,8 @@ function App() {
 
                   {/* Table with Sticky Header - Single Table */}
                 <div className="rounded-[16px] border border-[var(--border-color)] bg-[var(--bg-secondary)] overflow-hidden">
-                  <div 
-                    className="overflow-auto relative custom-scrollbar" 
+                  <div
+                    className="overflow-auto relative custom-scrollbar"
                     style={{ maxHeight: 'calc(100vh - 185px)', scrollbarGutter: 'stable' }}
                   >
                     <table className="text-left border-collapse w-full excel-grid" style={{ tableLayout: 'auto' }}>
