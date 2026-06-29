@@ -2083,7 +2083,7 @@ function App() {
                     style={{ maxHeight: 'calc(100vh - 185px)', scrollbarGutter: 'stable' }}
                   >
                     <table className="text-left border-collapse w-full excel-grid" style={{ tableLayout: 'auto' }}>
-                      <thead className="sticky top-0" style={{ zIndex: 50, background: 'var(--bg-secondary)', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)', borderBottom: '3px solid var(--accent-primary)' }}>
+                      <thead className={`sticky top-0 ${isMobileSidebarOpen ? 'backdrop-blur-md' : ''}`} style={{ zIndex: 50, background: 'var(--bg-secondary)', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)', borderBottom: '3px solid var(--accent-primary)' }}>
                         <tr>
                           <th className="sticky left-0 top-0 px-0 py-0 text-center font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ zIndex: 150, background: 'var(--bg-secondary)', isolation: 'isolate', borderRight: '2px solid var(--border-color)' }}>
                             <div style={{ zIndex: 151, padding: '12px 12px', background: 'var(--bg-secondary)', color: 'var(--accent-primary)', fontWeight: '800' }}>#</div>
