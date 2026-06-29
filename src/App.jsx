@@ -145,10 +145,10 @@ const Sidebar = ({ activePage, setActivePage, inventoryCount, hubsCount, effecti
         {isMobile && (
           <button
             onClick={onCloseMobile}
-            className="p-2 rounded-lg hover:bg-white/10 transition-colors lg:hidden"
+            className="p-2.5 rounded-xl hover:bg-white/10 transition-all duration-300 hover:scale-110 active:scale-95 lg:hidden"
             style={{ color: 'var(--text-secondary)' }}
           >
-            <X size={20} />
+            <X size={20} strokeWidth={2.5} />
           </button>
         )}
       </div>
@@ -1352,14 +1352,17 @@ function App() {
       {/* Mobile Menu Toggle */}
       <button
         onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
-        className="lg:hidden fixed top-4 left-4 z-30 p-2 rounded-lg bg-[var(--bg-secondary)] border border-[var(--border-glass)] shadow-lg"
-        style={{ color: 'var(--text-primary)' }}
+        className="lg:hidden fixed top-4 left-4 z-30 p-3 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border-glass)] shadow-xl backdrop-blur-sm transition-all duration-300 hover:scale-105 active:scale-95"
+        style={{
+          color: 'var(--text-primary)',
+          background: 'linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary))'
+        }}
       >
-        {isMobileSidebarOpen ? <X size={24} /> : <Menu size={24} />}
+        {isMobileSidebarOpen ? <X size={24} strokeWidth={2.5} /> : <Menu size={24} strokeWidth={2.5} />}
       </button>
 
       {/* Sidebar */}
-      <div className={`fixed left-0 top-0 h-screen z-20 transition-transform duration-300 lg:translate-x-0 ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+      <div className={`fixed left-0 top-0 h-screen z-20 transition-transform duration-300 ease-in-out lg:translate-x-0 ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         <Sidebar
           activePage={activePage}
           setActivePage={setActivePage}
@@ -1378,11 +1381,11 @@ function App() {
       {isMobileSidebarOpen && (
         <div
           onClick={() => setIsMobileSidebarOpen(false)}
-          className="lg:hidden fixed inset-0 bg-black/50 z-10"
+          className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-10 transition-opacity duration-300"
         />
       )}
 
-      <div className={`flex-1 flex flex-col min-w-0 overflow-hidden transition-all duration-300 lg:ml-0 ${isSidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'}`}>
+      <div className={`flex-1 flex flex-col min-w-0 overflow-hidden transition-all duration-300 ease-in-out lg:ml-0 ${isSidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'}`}>
 
         {/* Page Content */}
         <div
