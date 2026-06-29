@@ -75,7 +75,7 @@ import { useTheme, themes } from './context/ThemeContext';
 import AnalyticsDashboard from './components/AnalyticsDashboard';
 import Toast from './components/ui/Toast';
 
-const Sidebar = ({ activePage, setActivePage, inventoryCount, hubsCount, effectiveTheme, isCollapsed, onToggle, onLogout }) => {
+const Sidebar = ({ activePage, setActivePage, inventoryCount, hubsCount, effectiveTheme, isCollapsed, onToggle, onLogout, isMobile, onCloseMobile }) => {
   const [showTooltip, setShowTooltip] = useState(false);
   const [hoveredItem, setHoveredItem] = useState(null);
 
@@ -107,7 +107,7 @@ const Sidebar = ({ activePage, setActivePage, inventoryCount, hubsCount, effecti
             <p className="text-[10px] uppercase tracking-wider font-bold" style={{ color: 'var(--text-tertiary)' }}>System</p>
           </div>
         )}
-        <div className="relative flex-shrink-0 ml-auto">
+        <div className="relative flex-shrink-0 ml-auto hidden lg:block">
           <button
             onClick={onToggle}
             onMouseEnter={() => setShowTooltip(true)}
@@ -142,6 +142,15 @@ const Sidebar = ({ activePage, setActivePage, inventoryCount, hubsCount, effecti
             </div>
           )}
         </div>
+        {isMobile && (
+          <button
+            onClick={onCloseMobile}
+            className="p-2 rounded-lg hover:bg-white/10 transition-colors lg:hidden"
+            style={{ color: 'var(--text-secondary)' }}
+          >
+            <X size={20} />
+          </button>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto py-6 px-3 space-y-6 modern-scroll" style={{ overflow: 'visible' }}>
@@ -1340,8 +1349,17 @@ function App() {
 
   return (
     <div className={`min-h-screen flex ${effectiveTheme}`} style={{ background: 'var(--bg-primary)' }}>
+      {/* Mobile Menu Toggle */}
+      <button
+        onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+        className="lg:hidden fixed top-4 left-4 z-30 p-2 rounded-lg bg-[var(--bg-secondary)] border border-[var(--border-glass)] shadow-lg"
+        style={{ color: 'var(--text-primary)' }}
+      >
+        {isMobileSidebarOpen ? <X size={24} /> : <Menu size={24} />}
+      </button>
+
       {/* Sidebar */}
-      <div className="fixed left-0 top-0 h-screen z-20">
+      <div className={`fixed left-0 top-0 h-screen z-20 transition-transform duration-300 lg:translate-x-0 ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         <Sidebar
           activePage={activePage}
           setActivePage={setActivePage}
@@ -1351,10 +1369,20 @@ function App() {
           isCollapsed={isSidebarCollapsed}
           onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
           onLogout={handleLogout}
+          isMobile={isMobileSidebarOpen}
+          onCloseMobile={() => setIsMobileSidebarOpen(false)}
         />
       </div>
 
-      <div className={`flex-1 flex flex-col min-w-0 overflow-hidden transition-all duration-300 ${isSidebarCollapsed ? 'ml-20' : 'ml-64'}`}>
+      {/* Mobile Overlay */}
+      {isMobileSidebarOpen && (
+        <div
+          onClick={() => setIsMobileSidebarOpen(false)}
+          className="lg:hidden fixed inset-0 bg-black/50 z-10"
+        />
+      )}
+
+      <div className={`flex-1 flex flex-col min-w-0 overflow-hidden transition-all duration-300 lg:ml-0 ${isSidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'}`}>
 
         {/* Page Content */}
         <div
