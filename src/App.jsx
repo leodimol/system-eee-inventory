@@ -89,8 +89,8 @@ const Sidebar = ({ activePage, setActivePage, inventoryCount, hubsCount, effecti
   ];
 
   return (
-    <div 
-      className={`flex flex-col h-screen shrink-0 glass-sidebar transition-all duration-300 ${isCollapsed ? 'w-20' : 'w-64'}`}
+    <div
+      className={`flex flex-col h-screen shrink-0 glass-sidebar transition-all duration-300 ${isCollapsed ? 'w-20' : 'w-64'} ${isMobile ? 'backdrop-blur-xl' : ''}`}
       style={{ background: 'var(--bg-glass)' }}
     >
       <div className="p-4 border-b border-[var(--border-glass)] flex items-center gap-3">
