@@ -578,38 +578,32 @@ function App() {
 
   const { theme, setTheme, themes, effectiveTheme } = useTheme();
 
-  // Auto-hide mobile menu button after 5 seconds of inactivity
+  // Auto-hide mobile menu button - hide immediately when not active
   useEffect(() => {
-    let timeoutId;
+    let scrollTimeoutId;
 
-    const hideButton = () => {
-      timeoutId = setTimeout(() => {
-        setShowMobileMenuButton(false);
-      }, 5000);
-    };
-
-    const showButton = () => {
+    const handleScroll = () => {
       setShowMobileMenuButton(true);
-      clearTimeout(timeoutId);
-      hideButton();
+      clearTimeout(scrollTimeoutId);
+      // Hide immediately after scrolling stops (short delay to allow scroll to complete)
+      scrollTimeoutId = setTimeout(() => {
+        setShowMobileMenuButton(false);
+      }, 100);
     };
 
-    // Initial hide
-    hideButton();
+    // Hide button immediately when sidebar is closed
+    if (!isMobileSidebarOpen) {
+      setShowMobileMenuButton(false);
+    }
 
-    // Show button on user interaction
-    const events = ['mousedown', 'touchstart', 'keydown', 'scroll'];
-    events.forEach(event => {
-      document.addEventListener(event, showButton);
-    });
+    // Show button only on scroll
+    document.addEventListener('scroll', handleScroll, true);
 
     return () => {
-      clearTimeout(timeoutId);
-      events.forEach(event => {
-        document.removeEventListener(event, showButton);
-      });
+      clearTimeout(scrollTimeoutId);
+      document.removeEventListener('scroll', handleScroll, true);
     };
-  }, []);
+  }, [isMobileSidebarOpen]);
 
   // Client-side filtering (only for additional filtering not handled by server)
   const equipment = useMemo(() => {
