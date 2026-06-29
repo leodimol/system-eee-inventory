@@ -305,6 +305,7 @@ function App() {
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [selectedHub, setSelectedHub] = useState('all');
   const [toast, setToast] = useState(null);
+  const [showMobileMenuButton, setShowMobileMenuButton] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEquipment, setEditingEquipment] = useState(null);
   const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, onConfirm: null, title: '', message: '', type: 'warning' });
@@ -576,6 +577,39 @@ function App() {
   };
 
   const { theme, setTheme, themes, effectiveTheme } = useTheme();
+
+  // Auto-hide mobile menu button after 5 seconds of inactivity
+  useEffect(() => {
+    let timeoutId;
+
+    const hideButton = () => {
+      timeoutId = setTimeout(() => {
+        setShowMobileMenuButton(false);
+      }, 5000);
+    };
+
+    const showButton = () => {
+      setShowMobileMenuButton(true);
+      clearTimeout(timeoutId);
+      hideButton();
+    };
+
+    // Initial hide
+    hideButton();
+
+    // Show button on user interaction
+    const events = ['mousedown', 'touchstart', 'keydown', 'scroll'];
+    events.forEach(event => {
+      document.addEventListener(event, showButton);
+    });
+
+    return () => {
+      clearTimeout(timeoutId);
+      events.forEach(event => {
+        document.removeEventListener(event, showButton);
+      });
+    };
+  }, []);
 
   // Client-side filtering (only for additional filtering not handled by server)
   const equipment = useMemo(() => {
@@ -1352,7 +1386,7 @@ function App() {
       {/* Mobile Menu Toggle */}
       <button
         onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
-        className="lg:hidden fixed top-4 left-4 z-30 p-3 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border-glass)] shadow-xl backdrop-blur-sm transition-all duration-300 hover:scale-105 active:scale-95"
+        className={`lg:hidden fixed top-4 left-4 z-30 p-3 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border-glass)] shadow-xl backdrop-blur-sm transition-all duration-300 hover:scale-105 active:scale-95 ${showMobileMenuButton ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
         style={{
           color: 'var(--text-primary)',
           background: 'linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary))'
