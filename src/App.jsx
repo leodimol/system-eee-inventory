@@ -580,29 +580,8 @@ function App() {
 
   // Auto-hide mobile menu button - hide immediately when not active
   useEffect(() => {
-    let scrollTimeoutId;
-
-    const handleScroll = () => {
-      setShowMobileMenuButton(true);
-      clearTimeout(scrollTimeoutId);
-      // Hide immediately after scrolling stops (short delay to allow scroll to complete)
-      scrollTimeoutId = setTimeout(() => {
-        setShowMobileMenuButton(false);
-      }, 100);
-    };
-
-    // Hide button immediately when sidebar is closed
-    if (!isMobileSidebarOpen) {
-      setShowMobileMenuButton(false);
-    }
-
-    // Show button only on scroll
-    document.addEventListener('scroll', handleScroll, true);
-
-    return () => {
-      clearTimeout(scrollTimeoutId);
-      document.removeEventListener('scroll', handleScroll, true);
-    };
+    // Always show the edge indicator, hide only when sidebar is open
+    setShowMobileMenuButton(!isMobileSidebarOpen);
   }, [isMobileSidebarOpen]);
 
   // Client-side filtering (only for additional filtering not handled by server)
@@ -1377,16 +1356,22 @@ function App() {
 
   return (
     <div className={`min-h-screen flex ${effectiveTheme}`} style={{ background: 'var(--bg-primary)' }}>
-      {/* Mobile Menu Toggle */}
+      {/* Mobile Menu Toggle - Edge Indicator */}
       <button
         onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
-        className={`lg:hidden fixed top-4 left-4 z-30 p-3 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border-glass)] shadow-xl backdrop-blur-sm transition-all duration-300 hover:scale-105 active:scale-95 ${showMobileMenuButton ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+        className={`lg:hidden fixed top-1/2 left-0 -translate-y-1/2 z-30 w-8 h-16 rounded-r-xl bg-[var(--bg-secondary)] border border-[var(--border-glass)] border-l-0 shadow-xl backdrop-blur-sm transition-all duration-300 hover:w-12 hover:shadow-2xl ${showMobileMenuButton ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-full'}`}
         style={{
           color: 'var(--text-primary)',
           background: 'linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary))'
         }}
       >
-        {isMobileSidebarOpen ? <X size={24} strokeWidth={2.5} /> : <Menu size={24} strokeWidth={2.5} />}
+        <div className="flex items-center justify-center h-full">
+          {isMobileSidebarOpen ? (
+            <ChevronLeft size={20} strokeWidth={2.5} />
+          ) : (
+            <ChevronRight size={20} strokeWidth={2.5} />
+          )}
+        </div>
       </button>
 
       {/* Sidebar */}
