@@ -222,6 +222,16 @@ const AnalyticsDashboard = ({ equipment, filters, compact }) => {
       color: CHART_COLORS[Object.keys(hubCounts).indexOf(name) % CHART_COLORS.length]
     })).sort((a, b) => b.value - a.value);
 
+    // Limit to top 10 locations and group the rest as "Others"
+    if (result.length > 10) {
+      const top10 = result.slice(0, 10);
+      const others = result.slice(10).reduce((sum, item) => sum + item.value, 0);
+      if (others > 0) {
+        top10.push({ name: 'Others', value: others, color: '#9ca3af' });
+      }
+      result = top10;
+    }
+
     return result;
   }, [filteredEquipment]);
 
