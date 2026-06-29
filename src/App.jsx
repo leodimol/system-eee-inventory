@@ -537,7 +537,7 @@ function App() {
   };
 
   const { hubs, loading: hubsLoading } = useHubs();
-  const { stats, loading: statsLoading } = useEquipmentStats('all');
+  const { stats, loading: statsLoading, refresh: refreshStats } = useEquipmentStats('all');
   const {
     equipment: allEquipment,
     loading: equipLoading,
@@ -556,7 +556,16 @@ function App() {
     equipment: allEquipmentForSidebar,
     loading: sidebarEquipLoading,
     totalCount: sidebarTotalCount,
+    refresh: refreshSidebar,
   } = useEquipment('all', 1, {}, '', false);
+
+  const handleAssetSaved = () => {
+    // Refresh all data after asset is saved/updated
+    refresh();
+    refreshStats();
+    refreshSidebar();
+  };
+
   const { theme, setTheme, themes, effectiveTheme } = useTheme();
 
   // Client-side filtering (only for additional filtering not handled by server)
@@ -2390,7 +2399,7 @@ function App() {
           setEditingEquipment(null);
         }}
         asset={editingEquipment}
-        onSaved={null}
+        onSaved={handleAssetSaved}
         authUser={authUser}
         onToast={setToast}
       />
