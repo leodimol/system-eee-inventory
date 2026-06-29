@@ -1362,7 +1362,7 @@ function App() {
       </button>
 
       {/* Sidebar */}
-      <div className={`fixed left-0 top-0 h-screen z-20 transition-transform duration-300 ease-in-out lg:translate-x-0 ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+      <div className={`fixed left-0 top-0 h-screen z-40 transition-transform duration-300 ease-in-out lg:translate-x-0 ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         <Sidebar
           activePage={activePage}
           setActivePage={setActivePage}
@@ -1381,16 +1381,16 @@ function App() {
       {isMobileSidebarOpen && (
         <div
           onClick={() => setIsMobileSidebarOpen(false)}
-          className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-10 transition-opacity duration-300"
+          className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-30 transition-opacity duration-300"
         />
       )}
 
-      <div className={`flex-1 flex flex-col min-w-0 overflow-hidden transition-all duration-300 ease-in-out lg:ml-0 ${isSidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'}`}>
+      <div className={`flex-1 flex flex-col min-w-0 overflow-hidden transition-all duration-300 ease-in-out lg:ml-0 ${isSidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'} ${isMobileSidebarOpen ? 'lg:ml-0' : ''}`}>
 
         {/* Page Content */}
         <div
-          className="flex-1 p-6 overflow-y-auto gradient-mesh"
-          style={{ background: 'var(--bg-primary)', paddingBottom: '65px' }}
+          className="flex-1 p-4 lg:p-6 overflow-y-auto gradient-mesh"
+          style={{ background: 'var(--bg-primary)', paddingBottom: '65px', paddingTop: isMobileSidebarOpen ? '0' : '60px' }}
         >
           {activePage === 'dashboard' && (
             <div className="max-w-7xl mx-auto space-y-6 page-transition">
