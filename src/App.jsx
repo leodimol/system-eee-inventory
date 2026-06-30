@@ -115,19 +115,19 @@ const Sidebar = ({ activePage, setActivePage, inventoryCount, hubsCount, effecti
             className="p-3 rounded-lg transition-all duration-300 hover:scale-110"
             style={{
               color: 'var(--text-secondary)',
-              background: 'linear-gradient(135deg, rgba(47, 124, 255, 0.14), rgba(190, 70, 255, 0.14))',
-              border: '1px solid rgba(47, 124, 255, 0.28)',
-              boxShadow: '0 0 0 1px rgba(47, 124, 255, 0.12), 0 4px 12px rgba(47, 124, 255, 0.18)'
+              background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(99, 102, 241, 0.12))',
+              border: '1px solid rgba(59, 130, 246, 0.25)',
+              boxShadow: '0 0 0 1px rgba(59, 130, 246, 0.1), 0 4px 12px rgba(59, 130, 246, 0.15)'
             }}
             onMouseOver={(e) => {
-              e.currentTarget.style.background = 'linear-gradient(135deg, rgba(47, 124, 255, 0.2), rgba(190, 70, 255, 0.2))';
-              e.currentTarget.style.boxShadow = '0 0 0 1px rgba(47, 124, 255, 0.4), 0 6px 20px rgba(47, 124, 255, 0.25)';
-              e.currentTarget.style.borderColor = 'rgba(47, 124, 255, 0.45)';
+              e.currentTarget.style.background = 'linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(99, 102, 241, 0.18))';
+              e.currentTarget.style.boxShadow = '0 0 0 1px rgba(59, 130, 246, 0.35), 0 6px 20px rgba(59, 130, 246, 0.2)';
+              e.currentTarget.style.borderColor = 'rgba(59, 130, 246, 0.4)';
             }}
             onMouseOut={(e) => {
-              e.currentTarget.style.background = 'linear-gradient(135deg, rgba(47, 124, 255, 0.14), rgba(190, 70, 255, 0.14))';
-              e.currentTarget.style.boxShadow = '0 0 0 1px rgba(47, 124, 255, 0.12), 0 4px 12px rgba(47, 124, 255, 0.18)';
-              e.currentTarget.style.borderColor = 'rgba(47, 124, 255, 0.28)';
+              e.currentTarget.style.background = 'linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(99, 102, 241, 0.12))';
+              e.currentTarget.style.boxShadow = '0 0 0 1px rgba(59, 130, 246, 0.1), 0 4px 12px rgba(59, 130, 246, 0.15)';
+              e.currentTarget.style.borderColor = 'rgba(59, 130, 246, 0.25)';
             }}
           >
             {isCollapsed ? (
@@ -172,7 +172,7 @@ const Sidebar = ({ activePage, setActivePage, inventoryCount, hubsCount, effecti
                   } ${isCollapsed ? 'justify-center' : ''}`}
                   style={activePage === item.id ? {
                     background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))',
-                    boxShadow: '0 4px 20px rgba(10, 132, 255, 0.35)',
+                    boxShadow: '0 4px 20px rgba(59, 130, 246, 0.3)',
                     color: 'white'
                   } : {
                     color: 'var(--text-primary)'
@@ -226,7 +226,7 @@ const Sidebar = ({ activePage, setActivePage, inventoryCount, hubsCount, effecti
                   } ${isCollapsed ? 'justify-center' : ''}`}
                   style={activePage === item.id ? {
                     background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))',
-                    boxShadow: '0 4px 20px rgba(10, 132, 255, 0.35)',
+                    boxShadow: '0 4px 20px rgba(59, 130, 246, 0.3)',
                     color: 'white'
                   } : {
                     color: 'var(--text-primary)'

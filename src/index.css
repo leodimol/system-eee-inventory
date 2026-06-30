@@ -137,7 +137,7 @@ select::-ms-expand {
 
 .form-input:focus {
   border-color: var(--accent-primary);
-  box-shadow: 0 0 0 3px rgba(198, 40, 40, 0.12);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 
 .form-input:hover {
@@ -222,7 +222,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
 .btn-primary {
   background: var(--gradient-primary);
   color: white;
-  box-shadow: 0 4px 20px rgba(198, 40, 40, 0.35), 0 2px 8px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3), 0 2px 8px rgba(0,0,0,0.2);
   text-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
 
@@ -387,7 +387,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
 
 .form-textarea:focus {
   border-color: var(--accent-primary);
-  box-shadow: 0 0 0 3px rgba(198, 40, 40, 0.12);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 
 .form-textarea:hover {
@@ -417,32 +417,31 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
     --input: 240 4% 20%;
     --ring: 217 100% 50%;
     
-    /* Modern 2025 Variables - Enhanced Vibrant Colors */
-    --bg-primary: #070a17;
-    --bg-secondary: #101a31;
-    --bg-primary: #071023;
-    --bg-secondary: #081427;
-    --bg-tertiary: #0c1530;
-    --bg-glass: rgba(6, 8, 20, 0.88);
-    --bg-glass-light: rgba(12, 18, 34, 0.92);
-    --text-primary: #f8f7f6;
-    --text-secondary: #e6e3e3;
-    --text-tertiary: #b8b6bb;
-    --border-color: rgba(200, 60, 60, 0.08);
-    --border-glass: rgba(200, 60, 60, 0.10);
+    /* Modern 2025 Variables - Refined Professional Palette */
+    --bg-primary: #0a0e1a;
+    --bg-secondary: #111827;
+    --bg-tertiary: #1a2332;
+    --bg-glass: rgba(17, 24, 39, 0.85);
+    --bg-glass-light: rgba(26, 35, 50, 0.9);
+    --text-primary: #f1f5f9;
+    --text-secondary: #cbd5e1;
+    --text-tertiary: #94a3b8;
+    --border-color: rgba(148, 163, 184, 0.1);
+    --border-glass: rgba(148, 163, 184, 0.15);
     --shadow-sm: 0 2px 8px rgba(0,0,0,0.28);
     --shadow-md: 0 8px 32px rgba(0,0,0,0.42);
     --shadow-lg: 0 16px 64px rgba(0,0,0,0.6);
-    --shadow-glow: 0 0 70px rgba(200, 40, 40, 0.28);
+    --shadow-glow: 0 0 70px rgba(59, 130, 246, 0.25);
     
-    /* Modern Accent Colors (Red / Maroon Branding) */
-    --accent-primary: #c62828; /* deep red */
-    --accent-secondary: #8b1f1f; /* maroon */
-    --accent-purple: #7a1b1b;
-    --accent-pink: #ff5878;
+    /* Modern Accent Colors (Professional Blue/Indigo Branding) */
+    --accent-primary: #3b82f6; /* professional blue */
+    --accent-secondary: #6366f1; /* indigo */
+    --accent-tertiary: #818cf8; /* light indigo */
+    --accent-purple: #8b5cf6;
+    --accent-pink: #ec4899;
     --accent-orange: #f97316;
     --accent-green: #10b981;
-    --accent-teal: #2bb3ff;
+    --accent-teal: #14b8a6;
     --accent-yellow: #eab308;
     --accent-red: #ef4444;
     --accent-cyan: #06b6d4;
@@ -450,10 +449,10 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
     --accent-rose: #f43f5e;
     
     /* Gradient Definitions */
-    --gradient-primary: linear-gradient(135deg, #c62828 0%, #8b1f1f 60%, #5f0f0f 100%);
-    --gradient-secondary: linear-gradient(135deg, #a31f1f 0%, #6e1010 100%);
+    --gradient-primary: linear-gradient(135deg, #3b82f6 0%, #6366f1 60%, #4f46e5 100%);
+    --gradient-secondary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
     --gradient-danger: linear-gradient(135deg, #ef4444 0%, #f43f5e 100%);
-    --gradient-dark: linear-gradient(135deg, #0b122b 0%, #091125 100%);
+    --gradient-dark: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
     
     --blur-amount: 24px;
     --blur-heavy: 48px;
@@ -723,10 +722,10 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
   }
 
     .excel-badge-assigned {
-    background: linear-gradient(135deg, rgba(198, 40, 40, 0.12), rgba(79, 70, 229, 0.15));
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(99, 102, 241, 0.15));
     color: var(--accent-primary);
-    border-color: rgba(198, 40, 40, 0.28);
-    box-shadow: 0 2px 8px rgba(198, 40, 40, 0.12);
+    border-color: rgba(59, 130, 246, 0.28);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.12);
   }
 
   .excel-badge-maintenance {
@@ -789,6 +788,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
     background: var(--accent-primary);
     border-color: var(--accent-primary);
     color: white;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
   }
 
   .excel-action-delete:hover {
@@ -870,14 +870,14 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
     border: none;
     border-radius: var(--radius-md);
     color: white;
-    box-shadow: 0 4px 20px rgba(198, 40, 40, 0.35), 0 2px 8px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3), 0 2px 8px rgba(0,0,0,0.2);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     font-weight: 600;
     text-shadow: 0 1px 2px rgba(0,0,0,0.1);
     position: relative;
     overflow: hidden;
   }
-  
+
   .btn-primary::before {
     content: '';
     position: absolute;
@@ -888,14 +888,14 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
     background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
     transition: left 0.5s ease;
   }
-  
+
   .btn-primary:hover::before {
     left: 100%;
   }
-  
+
     .btn-primary:hover {
     transform: translateY(-3px) scale(1.02);
-    box-shadow: 0 8px 30px rgba(198, 40, 40, 0.45), 0 4px 12px rgba(0,0,0,0.25);
+    box-shadow: 0 8px 30px rgba(59, 130, 246, 0.4), 0 4px 12px rgba(0,0,0,0.25);
     filter: brightness(1.1);
   }
   
@@ -932,11 +932,11 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
     color: var(--accent-primary);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
-  
+
   .btn-outline:hover {
     background: var(--accent-primary);
     color: white;
-    box-shadow: 0 4px 20px rgba(198, 40, 40, 0.4);
+    box-shadow: 0 4px 20px rgba(59, 130, 246, 0.35);
     transform: translateY(-2px);
   }
   
@@ -1014,10 +1014,10 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
     color: var(--text-primary);
     transition: all 0.2s ease;
   }
-  
+
   .ios-input:focus {
     border-color: var(--accent-primary);
-    box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.2);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
     outline: none;
   }
   
@@ -1097,22 +1097,22 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
   /* Modern Gradient Backgrounds */
   .gradient-mesh {
     background:
-      radial-gradient(at 40% 20%, rgba(10, 132, 255, 0.15) 0px, transparent 50%),
-      radial-gradient(at 80% 0%, rgba(191, 90, 242, 0.1) 0px, transparent 50%),
-      radial-gradient(at 0% 50%, rgba(48, 209, 88, 0.08) 0px, transparent 50%),
-      radial-gradient(at 80% 50%, rgba(255, 159, 10, 0.08) 0px, transparent 50%),
-      radial-gradient(at 0% 100%, rgba(10, 132, 255, 0.1) 0px, transparent 50%),
+      radial-gradient(at 40% 20%, rgba(59, 130, 246, 0.12) 0px, transparent 50%),
+      radial-gradient(at 80% 0%, rgba(99, 102, 241, 0.08) 0px, transparent 50%),
+      radial-gradient(at 0% 50%, rgba(16, 185, 129, 0.06) 0px, transparent 50%),
+      radial-gradient(at 80% 50%, rgba(249, 115, 22, 0.06) 0px, transparent 50%),
+      radial-gradient(at 0% 100%, rgba(59, 130, 246, 0.08) 0px, transparent 50%),
       var(--bg-primary);
     animation: meshMove 20s ease infinite;
   }
 
   .gradient-aurora {
     background: linear-gradient(125deg,
-      rgba(10, 132, 255, 0.1) 0%,
-      rgba(191, 90, 242, 0.08) 25%,
-      rgba(48, 209, 88, 0.06) 50%,
-      rgba(255, 159, 10, 0.08) 75%,
-      rgba(10, 132, 255, 0.1) 100%
+      rgba(59, 130, 246, 0.08) 0%,
+      rgba(99, 102, 241, 0.06) 25%,
+      rgba(16, 185, 129, 0.05) 50%,
+      rgba(249, 115, 22, 0.06) 75%,
+      rgba(59, 130, 246, 0.08) 100%
     );
     background-size: 400% 400%;
     animation: auroraFlow 15s ease infinite;
@@ -1169,7 +1169,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
 
   .btn-micro:hover {
     transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 8px 25px rgba(10, 132, 255, 0.3);
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
   }
 
   .btn-micro:active {
