@@ -350,11 +350,30 @@ function App() {
   const [pageLoading, setPageLoading] = useState(false);
 
   // General Settings state
-  const [generalSettings, setGeneralSettings] = useState({
-    autoRefresh: true,
-    compactView: false,
-    desktopNotifications: true
+  const [generalSettings, setGeneralSettings] = useState(() => {
+    const saved = localStorage.getItem('generalSettings');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        return {
+          autoRefresh: true,
+          compactView: false,
+          desktopNotifications: true
+        };
+      }
+    }
+    return {
+      autoRefresh: true,
+      compactView: false,
+      desktopNotifications: true
+    };
   });
+
+  // Save generalSettings to localStorage when changed
+  useEffect(() => {
+    localStorage.setItem('generalSettings', JSON.stringify(generalSettings));
+  }, [generalSettings]);
 
   // Auto-logout state
   const [logoutWarning, setLogoutWarning] = useState(false);
@@ -1394,11 +1413,12 @@ function App() {
       {isMobileSidebarOpen && (
         <div
           onClick={() => setIsMobileSidebarOpen(false)}
-          className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-30 transition-opacity duration-300"
+          className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-20 transition-opacity duration-300"
+          style={{ backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}
         />
       )}
 
-      <div className={`flex-1 flex flex-col min-w-0 overflow-hidden transition-all duration-300 ease-in-out ${isSidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'}`}>
+      <div className={`flex-1 flex flex-col min-w-0 overflow-hidden transition-all duration-300 ease-in-out ${isSidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'}`} style={{ zIndex: isMobileSidebarOpen ? 30 : 'auto', backdropFilter: isMobileSidebarOpen ? 'blur(12px)' : 'none', WebkitBackdropFilter: isMobileSidebarOpen ? 'blur(12px)' : 'none' }}>
 
         {/* Page Content */}
         <div
@@ -1590,7 +1610,7 @@ function App() {
                         <p className="font-medium">{setting.label}</p>
                         <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>{setting.desc}</p>
                       </div>
-                      <div 
+                      <div
                         className={`w-12 h-6 rounded-full relative cursor-pointer transition-colors ${
                           generalSettings[setting.key] ? '' : ''
                         }`}
@@ -2077,60 +2097,60 @@ function App() {
                   </div>
 
                   {/* Table with Sticky Header - Single Table */}
-                <div className="rounded-[16px] border border-[var(--border-color)] bg-[var(--bg-secondary)] overflow-hidden">
+                <div className={`rounded-[16px] border border-[var(--border-color)] bg-[var(--bg-secondary)] overflow-hidden ${isMobileSidebarOpen ? 'backdrop-blur-xl' : ''}`} style={{ zIndex: isMobileSidebarOpen ? 35 : 'auto', backdropFilter: isMobileSidebarOpen ? 'blur(20px)' : 'none', WebkitBackdropFilter: isMobileSidebarOpen ? 'blur(20px)' : 'none', background: isMobileSidebarOpen ? 'rgba(30, 41, 59, 0.5)' : 'var(--bg-secondary)' }}>
                   <div
                     className="overflow-auto relative custom-scrollbar"
                     style={{ maxHeight: 'calc(100vh - 185px)', scrollbarGutter: 'stable' }}
                   >
-                    <table className="text-left border-collapse w-full excel-grid" style={{ tableLayout: 'auto' }}>
-                      <thead className={`sticky top-0 ${isMobileSidebarOpen ? 'backdrop-blur-md' : ''}`} style={{ zIndex: 50, background: 'var(--bg-secondary)', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)', borderBottom: '3px solid var(--accent-primary)' }}>
+                    <table className="text-left border-collapse excel-grid" style={{ tableLayout: 'auto', width: 'auto' }}>
+                      <thead className="sticky top-0" style={{ zIndex: 50, background: 'transparent', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)', borderBottom: '3px solid var(--accent-primary)' }}>
                         <tr>
-                          <th className="sticky left-0 top-0 px-0 py-0 text-center font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ zIndex: 150, background: 'var(--bg-secondary)', isolation: 'isolate', borderRight: '2px solid var(--border-color)' }}>
-                            <div style={{ zIndex: 151, padding: '12px 12px', background: 'var(--bg-secondary)', color: 'var(--accent-primary)', fontWeight: '800' }}>#</div>
+                          <th className="sticky left-0 top-0 font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ zIndex: 150, background: 'var(--bg-secondary)', isolation: 'isolate', borderRight: '2px solid var(--border-color)', padding: generalSettings.compactView ? '4px' : '12px', fontSize: generalSettings.compactView ? '10px' : '12px', textAlign: 'center', width: '50px', minWidth: '50px' }}>
+                            #
                           </th>
-                          <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Asset</th>
-                          <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Asset Tag</th>
-                          <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Serial</th>
+                          <th className="text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800', padding: generalSettings.compactView ? '4px 4px' : '12px 12px', fontSize: generalSettings.compactView ? '10px' : '12px' }}>Asset</th>
+                          <th className="text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800', padding: generalSettings.compactView ? '4px 4px' : '12px 12px', fontSize: generalSettings.compactView ? '10px' : '12px' }}>Asset Tag</th>
+                          <th className="text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800', padding: generalSettings.compactView ? '4px 4px' : '12px 12px', fontSize: generalSettings.compactView ? '10px' : '12px' }}>Serial</th>
                           {filters.category === 'logistics' && (
                             <>
-                              <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Logistics Type</th>
-                              <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Quantity</th>
-                              <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Material</th>
-                              <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Dimensions</th>
-                              <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Load Capacity</th>
+                              <th className="text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800', padding: generalSettings.compactView ? '4px 4px' : '12px 12px', fontSize: generalSettings.compactView ? '10px' : '12px' }}>Logistics Type</th>
+                              <th className="text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800', padding: generalSettings.compactView ? '4px 4px' : '12px 12px', fontSize: generalSettings.compactView ? '10px' : '12px' }}>Quantity</th>
+                              <th className="text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800', padding: generalSettings.compactView ? '4px 4px' : '12px 12px', fontSize: generalSettings.compactView ? '10px' : '12px' }}>Material</th>
+                              <th className="text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800', padding: generalSettings.compactView ? '4px 4px' : '12px 12px', fontSize: generalSettings.compactView ? '10px' : '12px' }}>Dimensions</th>
+                              <th className="text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800', padding: generalSettings.compactView ? '4px 4px' : '12px 12px', fontSize: generalSettings.compactView ? '10px' : '12px' }}>Load Capacity</th>
                             </>
                           )}
                           {filters.category === 'office' && (
                             <>
-                              <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Office Type</th>
-                              <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Specs</th>
-                              <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Use</th>
-                              <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Quantity</th>
+                              <th className="text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800', padding: generalSettings.compactView ? '4px 4px' : '12px 12px', fontSize: generalSettings.compactView ? '10px' : '12px' }}>Office Type</th>
+                              <th className="text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800', padding: generalSettings.compactView ? '4px 4px' : '12px 12px', fontSize: generalSettings.compactView ? '10px' : '12px' }}>Specs</th>
+                              <th className="text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800', padding: generalSettings.compactView ? '4px 4px' : '12px 12px', fontSize: generalSettings.compactView ? '10px' : '12px' }}>Use</th>
+                              <th className="text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800', padding: generalSettings.compactView ? '4px 4px' : '12px 12px', fontSize: generalSettings.compactView ? '10px' : '12px' }}>Quantity</th>
                             </>
                           )}
                           {filters.category === 'transport' && (
                             <>
-                              <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Plate Number</th>
-                              <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Engine Number</th>
-                              <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Fuel Type</th>
-                              <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Capacity</th>
-                              <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Year</th>
+                              <th className="text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800', padding: generalSettings.compactView ? '4px 4px' : '12px 12px', fontSize: generalSettings.compactView ? '10px' : '12px' }}>Plate Number</th>
+                              <th className="text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800', padding: generalSettings.compactView ? '4px 4px' : '12px 12px', fontSize: generalSettings.compactView ? '10px' : '12px' }}>Engine Number</th>
+                              <th className="text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800', padding: generalSettings.compactView ? '4px 4px' : '12px 12px', fontSize: generalSettings.compactView ? '10px' : '12px' }}>Fuel Type</th>
+                              <th className="text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800', padding: generalSettings.compactView ? '4px 4px' : '12px 12px', fontSize: generalSettings.compactView ? '10px' : '12px' }}>Capacity</th>
+                              <th className="text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800', padding: generalSettings.compactView ? '4px 4px' : '12px 12px', fontSize: generalSettings.compactView ? '10px' : '12px' }}>Year</th>
                             </>
                           )}
                           {!filters.category && (
-                            <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Type</th>
+                            <th className="text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800', padding: generalSettings.compactView ? '4px 4px' : '12px 12px', fontSize: generalSettings.compactView ? '10px' : '12px' }}>Type</th>
                           )}
-                          <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Hub</th>
-                          <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Location</th>
-                          <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Assigned</th>
-                          <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Cond</th>
-                          <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Status</th>
-                          <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Purchase Date</th>
-                          <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Warranty</th>
-                          <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Description</th>
-                          <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Updated By</th>
-                          <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800' }}>Updated</th>
-                          <th className="px-3 py-3 text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', letterSpacing: '0.1em', fontWeight: '800' }}>Action</th>
+                          <th className="text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800', padding: generalSettings.compactView ? '4px 4px' : '12px 12px', fontSize: generalSettings.compactView ? '10px' : '12px' }}>Hub</th>
+                          <th className="text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800', padding: generalSettings.compactView ? '4px 4px' : '12px 12px', fontSize: generalSettings.compactView ? '10px' : '12px' }}>Location</th>
+                          <th className="text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800', padding: generalSettings.compactView ? '4px 4px' : '12px 12px', fontSize: generalSettings.compactView ? '10px' : '12px' }}>Assigned</th>
+                          <th className="text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800', padding: generalSettings.compactView ? '4px 4px' : '12px 12px', fontSize: generalSettings.compactView ? '10px' : '12px' }}>Cond</th>
+                          <th className="text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800', padding: generalSettings.compactView ? '4px 4px' : '12px 12px', fontSize: generalSettings.compactView ? '10px' : '12px' }}>Status</th>
+                          <th className="text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800', padding: generalSettings.compactView ? '4px 4px' : '12px 12px', fontSize: generalSettings.compactView ? '10px' : '12px' }}>Purchase Date</th>
+                          <th className="text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800', padding: generalSettings.compactView ? '4px 4px' : '12px 12px', fontSize: generalSettings.compactView ? '10px' : '12px' }}>Warranty</th>
+                          <th className="text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800', padding: generalSettings.compactView ? '4px 4px' : '12px 12px', fontSize: generalSettings.compactView ? '10px' : '12px' }}>Description</th>
+                          <th className="text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800', padding: generalSettings.compactView ? '4px 4px' : '12px 12px', fontSize: generalSettings.compactView ? '10px' : '12px' }}>Updated By</th>
+                          <th className="text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800', padding: generalSettings.compactView ? '4px 4px' : '12px 12px', fontSize: generalSettings.compactView ? '10px' : '12px' }}>Updated</th>
+                          <th className="text-left font-bold text-xs uppercase tracking-wider text-[var(--text-primary)]" style={{ color: 'var(--accent-primary)', borderRight: '1px solid var(--border-color)', letterSpacing: '0.1em', fontWeight: '800', padding: generalSettings.compactView ? '4px 4px' : '12px 12px', fontSize: generalSettings.compactView ? '10px' : '12px' }}>Action</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -2146,15 +2166,15 @@ function App() {
                                 style={(isAvailable && hasAssignment) ? { borderLeft: '3px solid var(--accent-red)' } : {}}
                                 onClick={() => setSelectedCell({ row: index, col: null })}
                               >
-                                <td 
+                                <td
                                   className={`sticky left-0 px-0 py-0 text-sm text-[var(--text-primary)] text-center border-r border-[var(--border-color)] ${selectedCell?.row === index && selectedCell?.col === 0 ? 'cell-selected' : ''}`}
-                                  style={{ position: 'sticky', left: 0, zIndex: 10, background: 'var(--bg-secondary)', isolation: 'isolate' }}
+                                  style={{ position: 'sticky', left: 0, zIndex: 10, background: 'var(--bg-secondary)', isolation: 'isolate', width: '50px', minWidth: '50px', textAlign: 'center' }}
                                   onClick={(e) => { e.stopPropagation(); setSelectedCell({ row: index, col: 0 }); }}
                                 >
-                                  <div style={{ 
+                                  <div style={{
                                     position: 'relative',
                                     zIndex: 11,
-                                    padding: '8px 12px',
+                                    padding: generalSettings.compactView ? '4px' : '8px 12px',
                                     height: '100%',
                                     display: 'flex',
                                     alignItems: 'center',
@@ -2164,8 +2184,9 @@ function App() {
                                     {index + 1}
                                   </div>
                                 </td>
-                                <td 
-                                  className={`px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)] overflow-hidden ${selectedCell?.row === index && selectedCell?.col === 1 ? 'cell-selected' : ''}`}
+                                <td
+                                  className="text-sm text-[var(--text-primary)] border-r border-[var(--border-color)] overflow-hidden"
+                                  style={{ padding: generalSettings.compactView ? '2px 4px' : '8px 12px', fontSize: generalSettings.compactView ? '11px' : '14px' }}
                                   onClick={(e) => { e.stopPropagation(); setSelectedCell({ row: index, col: 1 }); }}
                                 >
                                   <div className="flex items-center gap-2">
@@ -2201,81 +2222,82 @@ function App() {
                                     </div>
                                   </div>
                                 </td>
-                                <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                <td className="text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]" style={{ padding: generalSettings.compactView ? '2px 4px' : '8px 12px', fontSize: generalSettings.compactView ? '11px' : '14px' }}>
                                   {item.asset_tag || <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>}
                                 </td>
-                                <td 
-                                  className={`px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)] ${selectedCell?.row === index && selectedCell?.col === 2 ? 'cell-selected' : ''}`}
+                                <td
+                                  className="text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]"
+                                  style={{ padding: generalSettings.compactView ? '2px 4px' : '8px 12px', fontSize: generalSettings.compactView ? '11px' : '14px' }}
                                   onClick={(e) => { e.stopPropagation(); setSelectedCell({ row: index, col: 2 }); }}
                                 >
                                   {item.serial || <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>}
                                 </td>
                                 {filters.category === 'logistics' && (
                                   <>
-                                    <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                    <td className="text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]" style={{ padding: generalSettings.compactView ? '2px 4px' : '8px 12px', fontSize: generalSettings.compactView ? '11px' : '14px' }}>
                                       {item.logistics_type || <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>}
                                     </td>
-                                    <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                    <td className="text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]" style={{ padding: generalSettings.compactView ? '2px 4px' : '8px 12px', fontSize: generalSettings.compactView ? '11px' : '14px' }}>
                                       {item.quantity || <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>}
                                     </td>
-                                    <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                    <td className="text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]" style={{ padding: generalSettings.compactView ? '2px 4px' : '8px 12px', fontSize: generalSettings.compactView ? '11px' : '14px' }}>
                                       {item.material || <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>}
                                     </td>
-                                    <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                    <td className="text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]" style={{ padding: generalSettings.compactView ? '2px 4px' : '8px 12px', fontSize: generalSettings.compactView ? '11px' : '14px' }}>
                                       {item.dimensions || <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>}
                                     </td>
-                                    <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                    <td className="text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]" style={{ padding: generalSettings.compactView ? '2px 4px' : '8px 12px', fontSize: generalSettings.compactView ? '11px' : '14px' }}>
                                       {item.load_capacity || <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>}
                                     </td>
                                   </>
                                 )}
                                 {filters.category === 'office' && (
                                   <>
-                                    <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                    <td className="text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]" style={{ padding: generalSettings.compactView ? '2px 4px' : '8px 12px', fontSize: generalSettings.compactView ? '11px' : '14px' }}>
                                       {item.office_type || <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>}
                                     </td>
-                                    <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                    <td className="text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]" style={{ padding: generalSettings.compactView ? '2px 4px' : '8px 12px', fontSize: generalSettings.compactView ? '11px' : '14px' }}>
                                       {item.specs || <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>}
                                     </td>
-                                    <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                    <td className="text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]" style={{ padding: generalSettings.compactView ? '2px 4px' : '8px 12px', fontSize: generalSettings.compactView ? '11px' : '14px' }}>
                                       {item.use || <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>}
                                     </td>
-                                    <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                    <td className="text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]" style={{ padding: generalSettings.compactView ? '2px 4px' : '8px 12px', fontSize: generalSettings.compactView ? '11px' : '14px' }}>
                                       {item.office_quantity || <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>}
                                     </td>
                                   </>
                                 )}
                                 {filters.category === 'transport' && (
                                   <>
-                                    <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                    <td className="text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]" style={{ padding: generalSettings.compactView ? '2px 4px' : '8px 12px', fontSize: generalSettings.compactView ? '11px' : '14px' }}>
                                       {item.plate_number || <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>}
                                     </td>
-                                    <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                    <td className="text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]" style={{ padding: generalSettings.compactView ? '2px 4px' : '8px 12px', fontSize: generalSettings.compactView ? '11px' : '14px' }}>
                                       {item.engine_number || <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>}
                                     </td>
-                                    <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                    <td className="text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]" style={{ padding: generalSettings.compactView ? '2px 4px' : '8px 12px', fontSize: generalSettings.compactView ? '11px' : '14px' }}>
                                       {item.fuel_type || <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>}
                                     </td>
-                                    <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                    <td className="text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]" style={{ padding: generalSettings.compactView ? '2px 4px' : '8px 12px', fontSize: generalSettings.compactView ? '11px' : '14px' }}>
                                       {item.capacity || <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>}
                                     </td>
-                                    <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                    <td className="text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]" style={{ padding: generalSettings.compactView ? '2px 4px' : '8px 12px', fontSize: generalSettings.compactView ? '11px' : '14px' }}>
                                       {item.year_manufactured || <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>}
                                     </td>
                                   </>
                                 )}
                                 {!filters.category && (
-                                  <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                  <td className="text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]" style={{ padding: generalSettings.compactView ? '2px 4px' : '8px 12px', fontSize: generalSettings.compactView ? '11px' : '14px' }}>
                                     {item.equipment_type || <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>}
                                   </td>
                                 )}
-                                <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                <td className="text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]" style={{ padding: generalSettings.compactView ? '2px 4px' : '8px 12px', fontSize: generalSettings.compactView ? '11px' : '14px' }}>
                                   {item.hub || <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>}
                                 </td>
-                                <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                <td className="text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]" style={{ padding: generalSettings.compactView ? '2px 4px' : '8px 12px', fontSize: generalSettings.compactView ? '11px' : '14px' }}>
                                   {item.location || <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>}
                                 </td>
-                                <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                <td className="text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]" style={{ padding: generalSettings.compactView ? '2px 4px' : '8px 12px', fontSize: generalSettings.compactView ? '11px' : '14px' }}>
                                   {(() => {
                                     if (item.assigned_to && item.assigned_to.trim()) {
                                       return item.assigned_to;
@@ -2286,12 +2308,12 @@ function App() {
                                     return <span style={{ color: 'var(--text-tertiary)', fontStyle: 'italic' }}>Not assigned</span>;
                                   })()}
                                 </td>
-                            <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                            <td className="text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]" style={{ padding: generalSettings.compactView ? '2px 4px' : '8px 12px', fontSize: generalSettings.compactView ? '11px' : '14px' }}>
                                   <span className={`status-badge status-${(item.condition || 'unknown').toString().toLowerCase()}`}>
                                     {item.condition || '—'}
                                   </span>
                                 </td>
-                            <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                            <td className="text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]" style={{ padding: generalSettings.compactView ? '2px 4px' : '8px 12px', fontSize: generalSettings.compactView ? '11px' : '14px' }}>
                                   <span className={`status-badge status-${(item.status || 'unknown').toString().toLowerCase()}`}>
                                     {item.status || '—'}
                                   </span>
@@ -2311,10 +2333,10 @@ function App() {
                                     return null;
                                   })()}
                                 </td>
-                                <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                <td className="text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]" style={{ padding: generalSettings.compactView ? '2px 4px' : '8px 12px', fontSize: generalSettings.compactView ? '11px' : '14px' }}>
                                   {item.purchase_date ? new Date(item.purchase_date).toLocaleDateString() : <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>}
                                 </td>
-                                <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                <td className="text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]" style={{ padding: generalSettings.compactView ? '2px 4px' : '8px 12px', fontSize: generalSettings.compactView ? '11px' : '14px' }}>
                                   {(() => {
                                     if (!item.warranty_date) {
                                       return <span style={{ color: 'var(--accent-orange)', fontSize: '10px' }}>⚠️ Empty</span>;
@@ -2337,13 +2359,13 @@ function App() {
                                     );
                                   })()}
                                 </td>
-                                <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]" style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={item.notes || ''}>
+                                <td className="text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]" style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', padding: generalSettings.compactView ? '2px 4px' : '8px 12px', fontSize: generalSettings.compactView ? '11px' : '14px' }} title={item.notes || ''}>
                                   {item.notes || <span style={{ color: 'var(--text-tertiary)', fontStyle: 'italic' }}>—</span>}
                                 </td>
-                                <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                <td className="text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]" style={{ padding: generalSettings.compactView ? '2px 4px' : '8px 12px', fontSize: generalSettings.compactView ? '11px' : '14px' }}>
                                   {item.added_by || <span style={{ color: 'var(--text-tertiary)', fontStyle: 'italic' }}>Unknown</span>}
                                 </td>
-                                <td className="px-3 py-2 text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]">
+                                <td className="text-sm text-[var(--text-primary)] border-r border-[var(--border-color)]" style={{ padding: generalSettings.compactView ? '2px 4px' : '8px 12px', fontSize: generalSettings.compactView ? '11px' : '14px' }}>
                                   {item.updated_at 
                                     ? new Date(item.updated_at).toLocaleDateString() + ' ' + new Date(item.updated_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
                                     : (item.created_at 
@@ -2351,7 +2373,7 @@ function App() {
                                       : <span style={{ color: 'var(--text-tertiary)', fontStyle: 'italic' }}>Unknown</span>)
                                   }
                                 </td>
-                            <td className="px-4 py-3 text-center">
+                            <td className="text-center" style={{ padding: generalSettings.compactView ? '4px' : '12px 16px' }}>
                                   <div className="flex items-center justify-center gap-1">
                                     <button 
                                       className="p-1 border border-[var(--border-color)] rounded text-[var(--text-tertiary)] hover:bg-[var(--bg-glass-light)] hover:border-[var(--border-glass)] hover:text-[var(--text-primary)] transition-colors"
@@ -2400,7 +2422,7 @@ function App() {
                       })
                       ) : (
                         <tr>
-                          <td className="px-3 py-2 text-sm text-[var(--text-primary)] text-center" colSpan="15">
+                          <td className="text-sm text-[var(--text-primary)] text-center" style={{ padding: generalSettings.compactView ? '2px 4px' : '8px 12px', fontSize: generalSettings.compactView ? '11px' : '14px' }} colSpan="15">
                             <div className="flex flex-col items-center justify-center py-12">
                               <div className="w-10 h-10 rounded-full bg-[var(--bg-gray)] border border-[var(--border-color)] flex items-center justify-center text-[var(--text-gray)] font-bold mb-4">
                                 !
