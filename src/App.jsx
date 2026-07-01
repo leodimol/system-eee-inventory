@@ -697,6 +697,16 @@ function App() {
     return Object.entries(locations).map(([name, value]) => ({ name, value }));
   }, [allEquipment]);
 
+  const totalLocations = useMemo(() => {
+    const uniqueLocations = new Set();
+    allEquipment.forEach(item => {
+      if (item.location) {
+        uniqueLocations.add(item.location);
+      }
+    });
+    return uniqueLocations.size;
+  }, [allEquipment]);
+
   const statusData = useMemo(() => {
     const statuses = {};
     allEquipment.forEach(item => {
@@ -1709,7 +1719,7 @@ function App() {
                   >Assets</h3>
                   <h2 className="text-3xl font-black tracking-tight" style={{ color: 'var(--text-primary)' }}>Equipment Inventory</h2>
                   <p className="text-sm font-medium mt-2" style={{ color: 'var(--text-secondary)' }}>
-                    Track and manage all equipment across locations.
+                    Track and manage all equipment across {totalLocations} locations.
                   </p>
 
                   <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
