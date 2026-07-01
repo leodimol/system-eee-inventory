@@ -85,7 +85,12 @@ export function useEquipment(page = 1, filters = {}, searchQuery = '', useServer
       console.log(`Fetched ${data?.length || 0} items (page ${page} of ${Math.ceil(total / itemsPerPage)}, total: ${total}, shouldFetchAll: ${shouldFetchAll})`);
       setEquipment(data || []);
     } catch (err) {
-      setError(err.message);
+      // Handle authentication errors
+      if (err.code === '401' || err.message?.includes('JWT') || err.message?.includes('auth')) {
+        setError('Authentication required. Please log in.');
+      } else {
+        setError(err.message);
+      }
       console.error('Fetch error:', err);
     } finally {
       setLoading(false);
@@ -112,6 +117,9 @@ export function useEquipment(page = 1, filters = {}, searchQuery = '', useServer
 
     const { data, error } = await supabase.from('equipment').insert([itemWithTimestamp]).select();
     if (error) {
+      if (error.code === '401' || error.message?.includes('JWT') || error.message?.includes('auth')) {
+        throw new Error('Authentication required. Please log in.');
+      }
       console.error('Add equipment error:', error);
       throw error;
     }
@@ -138,6 +146,9 @@ export function useEquipment(page = 1, filters = {}, searchQuery = '', useServer
     const updatesWithTimestamp = { ...updates, updated_at: new Date().toISOString() };
     const { data, error } = await supabase.from('equipment').update(updatesWithTimestamp).eq('id', id).select();
     if (error) {
+      if (error.code === '401' || error.message?.includes('JWT') || error.message?.includes('auth')) {
+        throw new Error('Authentication required. Please log in.');
+      }
       console.error('Update equipment error:', error);
       throw error;
     }
@@ -159,9 +170,14 @@ export function useEquipment(page = 1, filters = {}, searchQuery = '', useServer
   const deleteEquipment = async (id, user = 'system') => {
     // Get old values for audit
     const { data: oldData } = await supabase.from('equipment').select('*').eq('id', id).single();
-    
+
     const { error } = await supabase.from('equipment').delete().eq('id', id);
-    if (error) throw error;
+    if (error) {
+      if (error.code === '401' || error.message?.includes('JWT') || error.message?.includes('auth')) {
+        throw new Error('Authentication required. Please log in.');
+      }
+      throw error;
+    }
     
     // Log audit
     await logAudit({
@@ -234,6 +250,9 @@ export function useEquipmentStats() {
 
       const { data, error } = await dataQuery;
       if (error) {
+        if (error.code === '401' || error.message?.includes('JWT') || error.message?.includes('auth')) {
+          throw new Error('Authentication required. Please log in.');
+        }
         console.error('Stats data fetch error:', error);
         throw error;
       }
@@ -307,7 +326,11 @@ export function useEquipmentStats() {
 
       setStats(counts);
     } catch (err) {
-      console.error('Stats fetch error:', err);
+      if (err.code === '401' || err.message?.includes('JWT') || err.message?.includes('auth')) {
+        console.error('Authentication required for stats');
+      } else {
+        console.error('Stats fetch error:', err);
+      }
     } finally {
       setLoading(false);
     }

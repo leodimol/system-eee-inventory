@@ -76,9 +76,44 @@ CREATE TABLE IF NOT EXISTS equipment (
 ALTER TABLE hubs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE equipment ENABLE ROW LEVEL SECURITY;
 
--- Create policies for public access (adjust for production)
-CREATE POLICY "Public Hubs Access" ON hubs FOR ALL USING (true);
-CREATE POLICY "Public Equipment Access" ON equipment FOR ALL USING (true);
+-- Create policies requiring authentication
+-- Hubs table policies
+CREATE POLICY "Hubs Select Authenticated" ON hubs
+  FOR SELECT USING (auth.role() = 'authenticated');
+
+CREATE POLICY "Hubs Insert Admin" ON hubs
+  FOR INSERT WITH CHECK (
+    auth.role() = 'authenticated' AND
+    (auth.email() LIKE '%@admin.com' OR auth.email() = 'admin@example.com')
+  );
+
+CREATE POLICY "Hubs Update Admin" ON hubs
+  FOR UPDATE USING (
+    auth.role() = 'authenticated' AND
+    (auth.email() LIKE '%@admin.com' OR auth.email() = 'admin@example.com')
+  );
+
+CREATE POLICY "Hubs Delete Admin" ON hubs
+  FOR DELETE USING (
+    auth.role() = 'authenticated' AND
+    (auth.email() LIKE '%@admin.com' OR auth.email() = 'admin@example.com')
+  );
+
+-- Equipment table policies
+CREATE POLICY "Equipment Select Authenticated" ON equipment
+  FOR SELECT USING (auth.role() = 'authenticated');
+
+CREATE POLICY "Equipment Insert Authenticated" ON equipment
+  FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+
+CREATE POLICY "Equipment Update Authenticated" ON equipment
+  FOR UPDATE USING (auth.role() = 'authenticated');
+
+CREATE POLICY "Equipment Delete Admin" ON equipment
+  FOR DELETE USING (
+    auth.role() = 'authenticated' AND
+    (auth.email() LIKE '%@admin.com' OR auth.email() = 'admin@example.com')
+  );
 
 -- Insert sample hubs if they don't exist
 INSERT INTO hubs (name, location, hub_code)
@@ -103,5 +138,15 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 -- Enable RLS for audit_logs
 ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
 
--- Create policy for audit_logs
-CREATE POLICY "Public Audit Logs Access" ON audit_logs FOR ALL USING (true);
+-- Create policies requiring authentication for audit_logs
+CREATE POLICY "Audit Logs Select Authenticated" ON audit_logs
+  FOR SELECT USING (auth.role() = 'authenticated');
+
+CREATE POLICY "Audit Logs Insert Authenticated" ON audit_logs
+  FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+
+CREATE POLICY "Audit Logs Delete Admin" ON audit_logs
+  FOR DELETE USING (
+    auth.role() = 'authenticated' AND
+    (auth.email() LIKE '%@admin.com' OR auth.email() = 'admin@example.com')
+  );
