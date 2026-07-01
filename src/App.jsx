@@ -1709,7 +1709,7 @@ function App() {
                   >Assets</h3>
                   <h2 className="text-3xl font-black tracking-tight" style={{ color: 'var(--text-primary)' }}>Equipment Inventory</h2>
                   <p className="text-sm font-medium mt-2" style={{ color: 'var(--text-secondary)' }}>
-                    Global tracking across {hubs.length} active logistics hubs.
+                    Track and manage all equipment across locations.
                   </p>
 
                   <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
