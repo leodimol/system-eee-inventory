@@ -228,6 +228,23 @@ const AddAssetModal = ({ isOpen, onClose, asset = null, onSaved, authUser, onToa
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     setErrors(prev => ({ ...prev, [name]: null }));
+
+    // Auto-close date picker if today is selected
+    if (e.target.type === 'date' && value) {
+      const today = new Date().toISOString().split('T')[0];
+      if (value === today) {
+        e.target.blur();
+      }
+    }
+
+    // Auto-close datetime picker if today is selected
+    if (e.target.type === 'datetime-local' && value) {
+      const today = new Date().toISOString().split('T')[0];
+      const selectedDate = value.split('T')[0];
+      if (selectedDate === today) {
+        e.target.blur();
+      }
+    }
   };
 
   // Real-time duplicate checking
