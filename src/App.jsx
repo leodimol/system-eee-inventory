@@ -70,12 +70,12 @@ import LoadingScreen from './components/LoadingScreen';
 import { Button, Card, Input, Modal } from './components/ui/Base';
 import EquipmentModal from './components/AddAssetModal';
 import EquipmentHistoryModal from './components/AssetHistoryModal';
-import { useEquipment, useEquipmentStats, useHubs } from './hooks/useData';
+import { useEquipment, useEquipmentStats } from './hooks/useData';
 import { useTheme, themes } from './context/ThemeContext';
 import AnalyticsDashboard from './components/AnalyticsDashboard';
 import Toast from './components/ui/Toast';
 
-const Sidebar = ({ activePage, setActivePage, inventoryCount, hubsCount, effectiveTheme, isCollapsed, onToggle, onLogout, isMobile, onCloseMobile }) => {
+const Sidebar = ({ activePage, setActivePage, inventoryCount, effectiveTheme, isCollapsed, onToggle, onLogout, isMobile, onCloseMobile }) => {
   const [showTooltip, setShowTooltip] = useState(false);
   const [hoveredItem, setHoveredItem] = useState(null);
 
@@ -303,7 +303,6 @@ function App() {
   const [activePage, setActivePage] = useState('dashboard');
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
-  const [selectedHub, setSelectedHub] = useState('all');
   const [toast, setToast] = useState(null);
   const [showMobileMenuButton, setShowMobileMenuButton] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -328,7 +327,6 @@ function App() {
   const [filters, setFilters] = useState({
     condition: '',
     status: '',
-    hub: '',
     category: '',
     subCategory: '',
     location: '',
@@ -341,7 +339,6 @@ function App() {
     status: '',
     condition: '',
     equipmentType: '',
-    hub: 'all',
     dateRange: 'all' // all, 30days, 90days, 1year
   });
 
@@ -565,8 +562,7 @@ function App() {
     setActivePage('dashboard');
   };
 
-  const { hubs, loading: hubsLoading } = useHubs();
-  const { stats, loading: statsLoading, refresh: refreshStats } = useEquipmentStats('all');
+  const { stats, loading: statsLoading, refresh: refreshStats } = useEquipmentStats();
   const {
     equipment: allEquipment,
     loading: equipLoading,
@@ -578,21 +574,12 @@ function App() {
     totalCount,
     totalPages,
     itemsPerPage
-  } = useEquipment(selectedHub, currentPage, filters, debouncedSearchQuery, false);
-
-  // Fetch all equipment for sidebar count (regardless of selected hub)
-  const {
-    equipment: allEquipmentForSidebar,
-    loading: sidebarEquipLoading,
-    totalCount: sidebarTotalCount,
-    refresh: refreshSidebar,
-  } = useEquipment('all', 1, {}, '', false);
+  } = useEquipment(currentPage, filters, debouncedSearchQuery, false);
 
   const handleAssetSaved = () => {
     // Refresh all data after asset is saved/updated
     refresh();
     refreshStats();
-    refreshSidebar();
   };
 
   const { theme, setTheme, themes, effectiveTheme } = useTheme();
@@ -774,14 +761,14 @@ function App() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Reset to page 1 when filters, search, or hub changes
+  // Reset to page 1 when filters or search changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearchQuery, filters, selectedHub]);
+  }, [debouncedSearchQuery, filters]);
 
   // Manage loading state based on data fetching
   useEffect(() => {
-    const anyLoading = hubsLoading || statsLoading || equipLoading;
+    const anyLoading = statsLoading || equipLoading;
     
     if (anyLoading) {
       setIsLoading(true);
@@ -790,10 +777,10 @@ function App() {
       const timer = setTimeout(() => {
         setIsLoading(false);
       }, 800);
-      
+
       return () => clearTimeout(timer);
     }
-  }, [hubsLoading, statsLoading, equipLoading]);
+  }, [statsLoading, equipLoading]);
 
   // Manage page-specific loading state
   useEffect(() => {
@@ -922,7 +909,7 @@ function App() {
 
   // Export All Data (JSON)
   const exportAllData = () => {
-    const data = { equipment, hubs, exportedAt: new Date().toISOString() };
+    const data = { equipment, exportedAt: new Date().toISOString() };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -936,14 +923,13 @@ function App() {
 
   // Export Excel with proper column widths
   const exportCSV = () => {
-    const headers = ['Model', 'Brand', 'Asset Tag', 'Serial', 'Type', 'Hub', 'Location', 'Assigned To', 'Condition', 'Status', 'Purchase Date', 'Warranty Expiry', 'Last Service'];
+    const headers = ['Model', 'Brand', 'Asset Tag', 'Serial', 'Type', 'Location', 'Assigned To', 'Condition', 'Status', 'Purchase Date', 'Warranty Expiry', 'Last Service'];
     const rows = equipment.map(item => [
       item.model,
       item.brand,
       item.asset_tag,
       item.serial,
       item.equipment_type,
-      item.hub,
       item.location,
       item.assigned_to,
       item.condition,
@@ -963,7 +949,6 @@ function App() {
       { wch: 15 }, // Asset Tag
       { wch: 20 }, // Serial
       { wch: 12 }, // Type
-      { wch: 15 }, // Hub
       { wch: 20 }, // Location
       { wch: 20 }, // Assigned To
       { wch: 12 }, // Condition
@@ -1142,30 +1127,13 @@ function App() {
         const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
         const jsonData = XLSX.utils.sheet_to_json(firstSheet);
 
-        // Fetch hubs to get hub_id from hub name
-        const { data: hubsData, error: hubsError } = await supabase.from('hubs').select('*');
-        if (hubsError) {
-          throw new Error('Failed to fetch hubs: ' + hubsError.message);
-        }
-
-        // Create hub name to hub_id mapping
-        const hubMap = {};
-        hubsData.forEach(hub => {
-          hubMap[hub.name.toLowerCase()] = hub.id;
-          hubMap[hub.hub_code?.toLowerCase()] = hub.id;
-        });
-
         const imported = jsonData.map(row => {
-          const hubName = row.Hub || row.hub || '';
-          const hubId = hubName ? (hubMap[hubName.toLowerCase()] || null) : null;
-
           return {
             model: row.Model || row.model || '',
             brand: row.Brand || row.brand || '',
             asset_tag: row['Asset Tag'] || row.asset_tag || '',
             serial: row.Serial || row.serial || '',
             equipment_type: row.Type || row.type || row.equipment_type || 'computer',
-            hub_id: hubId,
             location: row.Location || row.location || '',
             assigned_to: row['Assigned To'] || row.assigned_to || '',
             condition: row.Condition || row.condition || 'good',
@@ -1408,8 +1376,7 @@ function App() {
         <Sidebar
           activePage={activePage}
           setActivePage={setActivePage}
-          inventoryCount={sidebarTotalCount}
-          hubsCount={hubs.length}
+          inventoryCount={totalCount}
           effectiveTheme={effectiveTheme}
           isCollapsed={isSidebarCollapsed}
           onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
@@ -1465,28 +1432,31 @@ function App() {
                 >
                   <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>Filter by:</span>
                   
-                  {/* Hub Filter */}
+                  {/* Equipment Type Filter */}
                   <select
-                    value={analyticsFilters.hub}
-                    onChange={(e) => setAnalyticsFilters({...analyticsFilters, hub: e.target.value})}
+                    value={analyticsFilters.equipmentType}
+                    onChange={(e) => setAnalyticsFilters({...analyticsFilters, equipmentType: e.target.value})}
                     className="h-9 px-3 pr-8 rounded-full text-xs font-medium cursor-pointer"
-                    style={{ 
+                    style={{
                       WebkitAppearance: 'none',
                       MozAppearance: 'none',
                       appearance: 'none',
-                      background: analyticsFilters.hub !== 'all' ? 'var(--accent-primary)' : 'var(--bg-glass-light)',
-                      color: analyticsFilters.hub !== 'all' ? 'white' : 'var(--text-secondary)',
-                      border: `1px solid ${analyticsFilters.hub !== 'all' ? 'var(--accent-primary)' : 'var(--border-glass)'}`,
-                      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='${analyticsFilters.hub !== 'all' ? 'white' : 'currentColor'}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
+                      background: analyticsFilters.equipmentType ? 'var(--accent-primary)' : 'var(--bg-glass-light)',
+                      color: analyticsFilters.equipmentType ? 'white' : 'var(--text-secondary)',
+                      border: `1px solid ${analyticsFilters.equipmentType ? 'var(--accent-primary)' : 'var(--border-glass)'}`,
+                      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='${analyticsFilters.equipmentType ? 'white' : 'currentColor'}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
                       backgroundRepeat: 'no-repeat',
                       backgroundPosition: 'right 10px center',
                       backgroundSize: '12px 12px'
                     }}
                   >
-                    <option value="all">All Hubs</option>
-                    {hubs.sort((a, b) => a.name.localeCompare(b.name)).map(hub => (
-                      <option key={hub.id} value={hub.id}>{hub.name}</option>
-                    ))}
+                    <option value="">All Types</option>
+                    <option value="computer">Computer</option>
+                    <option value="laptop">Laptop</option>
+                    <option value="tablet">Tablet</option>
+                    <option value="monitor">Monitor</option>
+                    <option value="printer">Printer</option>
+                    <option value="scanner">Scanner</option>
                   </select>
 
                   {/* Status Filter */}
@@ -2054,8 +2024,8 @@ function App() {
                               }}
                             >
                               <option value="">All Locations</option>
-                              {hubs.sort((a, b) => a.name.localeCompare(b.name)).map(hub => (
-                                <option key={hub.id} value={hub.name}>{hub.name}</option>
+                              {Array.from(new Set(allEquipment.map(item => item.location).filter(Boolean))).sort().map(location => (
+                                <option key={location} value={location}>{location}</option>
                               ))}
                             </select>
                           </div>
@@ -2534,13 +2504,6 @@ function App() {
               </Card>
             </div>
           </div>
-          )}
-          
-          {activePage === 'hubs' && (
-            <div className="max-w-7xl mx-auto space-y-8 animate-slide-in">
-              <h2 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Hubs Management</h2>
-              <p style={{ color: 'var(--text-secondary)' }}>Hub management page coming soon...</p>
-            </div>
           )}
           
         </div>

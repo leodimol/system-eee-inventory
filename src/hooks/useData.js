@@ -5,7 +5,7 @@ import { logAudit } from '../utils/auditLog';
 const ITEMS_PER_PAGE = 50;
 const MAX_ITEMS_PER_PAGE = 10000; // For fetching all data without pagination
 
-export function useEquipment(hubId, page = 1, filters = {}, searchQuery = '', useServerFiltering = true) {
+export function useEquipment(page = 1, filters = {}, searchQuery = '', useServerFiltering = true) {
   const [equipment, setEquipment] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -15,16 +15,10 @@ export function useEquipment(hubId, page = 1, filters = {}, searchQuery = '', us
   const fetchEquipment = useCallback(async () => {
     try {
       setLoading(true);
-      
+
       // Build the base query with count
       let countQuery = supabase.from('equipment').select('*', { count: 'exact', head: true });
       let dataQuery = supabase.from('equipment').select('*');
-      
-      // Apply hub filter
-      if (hubId && hubId !== 'all') {
-        countQuery = countQuery.eq('hub', hubId);
-        dataQuery = dataQuery.eq('hub', hubId);
-      }
 
       // Only apply server-side filtering if useServerFiltering is true
       if (useServerFiltering) {
@@ -72,11 +66,11 @@ export function useEquipment(hubId, page = 1, filters = {}, searchQuery = '', us
       if (countError) throw countError;
 
       const total = count || 0;
-      console.log('useEquipment - Total count from DB:', total, 'for hubId:', hubId, 'filters:', filters);
+      console.log('useEquipment - Total count from DB:', total, 'filters:', filters);
       setTotalCount(total);
 
-      // If fetching all data for dashboard/sidebar (hubId='all', no filters, no search), fetch all without pagination
-      const shouldFetchAll = hubId === 'all' && !filters.category && !filters.status && !filters.condition && !searchQuery;
+      // If fetching all data for dashboard/sidebar (no filters, no search), fetch all without pagination
+      const shouldFetchAll = !filters.category && !filters.status && !filters.condition && !searchQuery;
       const itemsPerPage = shouldFetchAll ? MAX_ITEMS_PER_PAGE : ITEMS_PER_PAGE;
       setTotalPages(Math.ceil(total / itemsPerPage));
 
@@ -84,10 +78,10 @@ export function useEquipment(hubId, page = 1, filters = {}, searchQuery = '', us
       const start = (page - 1) * itemsPerPage;
       const end = start + itemsPerPage - 1;
       dataQuery = dataQuery.range(start, end).order('updated_at', { ascending: false });
-      
+
       const { data, error: dataError } = await dataQuery;
       if (dataError) throw dataError;
-      
+
       console.log(`Fetched ${data?.length || 0} items (page ${page} of ${Math.ceil(total / itemsPerPage)}, total: ${total}, shouldFetchAll: ${shouldFetchAll})`);
       setEquipment(data || []);
     } catch (err) {
@@ -96,7 +90,7 @@ export function useEquipment(hubId, page = 1, filters = {}, searchQuery = '', us
     } finally {
       setLoading(false);
     }
-  }, [hubId, page, useServerFiltering ? JSON.stringify(filters) : '', useServerFiltering ? searchQuery : '']);
+  }, [page, useServerFiltering ? JSON.stringify(filters) : '', useServerFiltering ? searchQuery : '']);
 
   useEffect(() => {
     fetchEquipment();
@@ -194,7 +188,7 @@ export function useEquipment(hubId, page = 1, filters = {}, searchQuery = '', us
   };
 }
 
-export function useEquipmentStats(hubId) {
+export function useEquipmentStats() {
   const [stats, setStats] = useState({
     total: 0,
     computers: 0,
@@ -220,8 +214,7 @@ export function useEquipmentStats(hubId) {
     fair: 0,
     poor: 0,
     assigned: 0,
-    unassigned: 0,
-    hubCounts: {}
+    unassigned: 0
   });
   const [loading, setLoading] = useState(true);
 
@@ -231,10 +224,6 @@ export function useEquipmentStats(hubId) {
 
       // Build base query with count
       let countQuery = supabase.from('equipment').select('*', { count: 'exact', head: true });
-      if (hubId && hubId !== 'all') {
-        // Skip hub filter since hub column doesn't exist in database
-        console.warn('Hub filter requested but hub column does not exist in database');
-      }
 
       // Get total count first
       const { count, error: countError } = await countQuery;
@@ -242,10 +231,6 @@ export function useEquipmentStats(hubId) {
 
       // Get data for detailed stats (only fetch needed columns)
       let dataQuery = supabase.from('equipment').select('equipment_type, status, condition, assigned_to');
-      if (hubId && hubId !== 'all') {
-        // Skip hub filter since hub column doesn't exist
-        console.warn('Hub filter requested but hub column does not exist in database');
-      }
 
       const { data, error } = await dataQuery;
       if (error) {
@@ -279,8 +264,7 @@ export function useEquipmentStats(hubId) {
         fair: 0,
         poor: 0,
         assigned: 0,
-        unassigned: 0,
-        hubCounts: {}
+        unassigned: 0
       };
 
       data?.forEach(item => {
@@ -319,11 +303,6 @@ export function useEquipmentStats(hubId) {
         } else {
           counts.unassigned++;
         }
-
-        // Count by hub (skip since hub column doesn't exist)
-        // if (item.hub) {
-        //   counts.hubCounts[item.hub] = (counts.hubCounts[item.hub] || 0) + 1;
-        // }
       });
 
       setStats(counts);
@@ -332,7 +311,7 @@ export function useEquipmentStats(hubId) {
     } finally {
       setLoading(false);
     }
-  }, [hubId]);
+  }, []);
 
   useEffect(() => {
     fetchStats();
