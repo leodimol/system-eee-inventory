@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS hubs (
 CREATE TABLE IF NOT EXISTS equipment (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     hub_id UUID REFERENCES hubs(id) ON DELETE CASCADE,
-    model TE XT NOT NULL,
+    model TEXT NOT NULL,
     brand TEXT,
     equipment_type TEXT NOT NULL,
     asset_tag TEXT UNIQUE,
@@ -81,9 +81,27 @@ CREATE POLICY "Public Hubs Access" ON hubs FOR ALL USING (true);
 CREATE POLICY "Public Equipment Access" ON equipment FOR ALL USING (true);
 
 -- Insert sample hubs if they don't exist
-INSERT INTO hubs (name, location, hub_code) 
-VALUES 
+INSERT INTO hubs (name, location, hub_code)
+VALUES
     ('Main Hub', 'Central Distribution Center', 'MAIN-01'),
     ('North Hub', 'Northern Logistics Wing', 'NRT-02'),
     ('South Hub', 'Southern Warehouse', 'STH-03')
 ON CONFLICT (hub_code) DO NOTHING;
+
+-- Create audit_logs table
+CREATE TABLE IF NOT EXISTS audit_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    equipment_id UUID REFERENCES equipment(id) ON DELETE CASCADE,
+    action TEXT NOT NULL,
+    old_values JSONB,
+    new_values JSONB,
+    changed_by TEXT,
+    changed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    reason TEXT
+);
+
+-- Enable RLS for audit_logs
+ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
+
+-- Create policy for audit_logs
+CREATE POLICY "Public Audit Logs Access" ON audit_logs FOR ALL USING (true);
